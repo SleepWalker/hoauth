@@ -3,6 +3,33 @@ hoauth
 
 hoauth extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net) in Yii.
 
+Available social networks
+-------------------------
+
+* OpenID
+* Google
+* Facebook
+* Twitter
+* Yahoo
+* MySpace
+* Windows Live
+* LinkedIn
+* Foursquare
+* Vkontakte
+* AOL
+
+Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html)
+
+A little about how it's woks
+----------------------------
+
+This extension authenticates and if it's need creates new user. When user was registered "locally" (so he has login (email) and password), then he can also log in with it's social account (extension checks if user with provided email exists in db, when yes, the he will be logged in and it is no matter how had he registered earlier - locally or not). After the user logged in he will be redirected to `Yii::app()->user->returnUrl`.
+
+In future releases, when it will be needed I can implement "classical algorithm": either local authorization or social authorization.
+
+**NOTE:** this extension requires `UserIdentity` class. It doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When your identity class has another name, you should edit `HOAuthAction` class.
+
+**NOTE 2:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
 
 Installation
 ------------
@@ -90,34 +117,6 @@ Additional properties for `HOAuthAction`
 * `scenario` - scenario name for the $model (optional)
 * `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
 * `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
-
-A little about how it's woks
-----------------------------
-
-This extension authenticates and if it's need creates new user. When user was registered "locally" (so he has login (email) and password), then he can also log in with it's social account (extension checks if user with provided email exists in db, when yes, the he will be logged in and it is no matter how had he registered earlier - locally or not). After the user logged in he will be redirected to `Yii::app()->user->returnUrl`.
-
-In future releases, when it will be needed I can implement "classical algorithm": either local authorization or social authorization.
-
-**NOTE:** this extension requires `UserIdentity` class. It doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When your identity class has another name, you should edit `HOAuthAction` class.
-
-**NOTE 2:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
-
-Available social networks
--------------------------
-
-* OpenID
-* Google
-* Facebook
-* Twitter
-* Yahoo
-* MySpace
-* Windows Live
-* LinkedIn
-* Foursquare
-* Vkontakte
-* AOL
-
-Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html)
 
 `UserOAuth` model
 -----------------
