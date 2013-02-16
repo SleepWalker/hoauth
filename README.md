@@ -7,8 +7,9 @@ hoauth extension provides simple integration with social network authorization l
 Installation
 ------------
 
-1. Simply copy the files in your `extensions` directory (or in any other directory you want).
-2. Edit yours controller source code (eg. `SiteController` class with `actionLogin()` method) to add new actions:
+**1\.** Simply copy the files in your `extensions` directory (or in any other directory you want).
+
+**2\.** Edit yours controller source code (eg. `SiteController` class with `actionLogin()` method) to add new actions:
 ```php
 class SiteController extends Controller
 {
@@ -49,7 +50,8 @@ class SiteController extends Controller
 ...
 }
 ```
-3. Add the `findByEmail` method to your user`s model class:
+
+**3\.** Add the `findByEmail` method to your user`s model class:
 ```php
   /**
    * Returns User model by its email
@@ -63,8 +65,10 @@ class SiteController extends Controller
     return self::model()->findByAttributes(array('email' => $email));
   }
 ```
-4. Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your oauth base url use this: http://yoursite.com/site/oauth .
-5. Add social login widget to your login page view:
+
+**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your oauth base url use this: http://yoursite.com/site/oauth .
+
+**5\.** Add social login widget to your login page view:
 ```php
 <?php $this->widget('ext.hoauth.HOAuthWidget', array(
   // id of controller where is your oauth action is (default: site)
@@ -77,15 +81,15 @@ Available social profile fields
 
 You can find them at HybridAuth [website](http://hybridauth.sourceforge.net/userguide/Profile_Data_User_Profile.html).
 And here is some additional fields, that I needed in my project, you can use them too:
-[*] `birthDate` - The full date of birthday (eg. 1991-09-03)
-[*] `genderShort` - short representation of gender (eg. 'm', 'f')
+* `birthDate` - The full date of birthday (eg. 1991-09-03)
+* `genderShort` - short representation of gender (eg. 'm', 'f')
 
 Additional properties for `HOAuthAction`
 ----------------------------------------
-[*] `enabled` - defines whether the ouath functionality is active. Useful for example for CMS, where user can enable or disable oauth functionality in control panel. (default: true)
-[*] `scenario` - scenario name for the $model (optional)
-[*] `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
-[*] `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
+* `enabled` - defines whether the ouath functionality is active. Useful for example for CMS, where user can enable or disable oauth functionality in control panel. (default: true)
+* `scenario` - scenario name for the $model (optional)
+* `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
+* `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
 
 A little about how it's woks
 ----------------------------
@@ -101,17 +105,17 @@ In future releases, when it will be needed I can implement "classical algorithm"
 Available social networks
 -------------------------
 
-[*] OpenID
-[*] Google
-[*] Facebook
-[*] Twitter
-[*] Yahoo
-[*] MySpace
-[*] Windows Live
-[*] LinkedIn
-[*] Foursquare
-[*] Vkontakte
-[*] AOL
+* OpenID
+* Google
+* Facebook
+* Twitter
+* Yahoo
+* MySpace
+* Windows Live
+* LinkedIn
+* Foursquare
+* Vkontakte
+* AOL
 
 Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html)
 
@@ -138,5 +142,5 @@ About how to use HybridAuth object you can read [here](http://hybridauth.sourcef
 Opensource projects that used in this extension
 -----------------------------------------------
 
-[*] [HybridAuth] (http://hybridauth.sourceforge.net)
-[*] [Zocial CSS3 Buttons] (https://github.com/samcollins/css-social-buttons/)
+* [HybridAuth] (http://hybridauth.sourceforge.net)
+* [Zocial CSS3 Buttons] (https://github.com/samcollins/css-social-buttons/)
