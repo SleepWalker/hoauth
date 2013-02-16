@@ -66,7 +66,7 @@ class SiteController extends Controller
   }
 ```
 
-**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your oauth base url use this: http://yoursite.com/site/oauth .
+**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your oauth `base_url` use this: http://yoursite.com/site/oauth .
 
 **5\.** Add social login widget to your login page view:
 ```php
