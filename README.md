@@ -31,8 +31,8 @@ In future releases, when it will be needed I can implement "classical algorithm"
 
 **NOTE 2:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
 
-Installation
-------------
+Installation and Usage
+----------------------
 
 **1\.** Simply copy the files in your `extensions` directory (or in any other directory you want).
 
