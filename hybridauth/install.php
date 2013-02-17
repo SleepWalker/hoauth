@@ -262,6 +262,10 @@ ul li label {
 	?> 
 
 	<?php
+    // trying to create config file
+    if( ! file_exists( $CONFIG_FILE_NAME ) && is_writable($GLOBAL_HYBRID_AUTH_PATH_BASE) )
+      touch( $CONFIG_FILE_NAME );
+      
 		// check config file is writable
 		if( ! is_writable( $CONFIG_FILE_NAME ) ):
 	?>
