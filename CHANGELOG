@@ -1,0 +1,8 @@
+Version 1.2
+-----------
+
+- HOAuthWiget property `$controllerId` replaced by `$route` and now you can specify route e.g. module/controller
+- Modification of **HybridAuth** install script to generating `Endpoint URL` properly.
+- Renaming of `user_oauth` table columns: `name` -> `provider`, `value` -> `identifier` (model will automatically update schema)
+- New features in `UserOAuth.php` model.
+- Support for `yii-user` extension
