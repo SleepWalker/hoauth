@@ -3,6 +3,10 @@ hoauth
 
 hoauth extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net) in Yii.
 
+Requirements
+------------
+* Yii 1.1 or above. (I have tested it only in 1.1.13)
+
 Available social networks
 -------------------------
 
@@ -93,14 +97,11 @@ class SiteController extends Controller
   }
 ```
 
-**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your oauth `base_url` use this: http://yoursite.com/site/oauth .
+**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your `HybridAuth Endpoint URL` use this: http://yoursite.com/site/oauth. After install you can leave `install.php` in your file system, while it's in Yii protected directory. But you must **remove** `oauthadmin` action, or make such rules, that give access only for admin users.
 
-**5\.** Add social login widget to your login page view:
+**5\.** Add social login widget to your login page view (you can use `controllerId` property, when you placing your widget not in the same controller as your `oauth` action):
 ```php
-<?php $this->widget('ext.hoauth.HOAuthWidget', array(
-  // id of controller where is your oauth action is (default: site)
-  'controllerId' => 'notsitecontroller', 
-)); ?>
+<?php $this->widget('ext.hoauth.HOAuthWidget'); ?>
 ```
 
 Available social profile fields
