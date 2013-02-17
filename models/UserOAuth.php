@@ -76,8 +76,10 @@ class UserOAuth extends CActiveRecord
     {
       $path = dirname(__FILE__) . '/../hybridauth';
       $config = $path . '/config.php';
+      if(!file_exists($config))
+        throw new CException("The config.php file doesn't exists");
 
-      include($path.'/Hybrid/Auth.php');
+      require($path.'/Hybrid/Auth.php');
       $this->_hybridauth = new Hybrid_Auth( $config );
 
       if(!empty($this->session_data))

@@ -17,10 +17,11 @@ class HOAuthWidget extends CWidget
   /**
    * @var string $controllerId id of controller for wich to generate oauth urls
    */
-  public $controllerId = 'site';
+  public $controllerId = false;
 
   public function run()
   {
+    $this->controllerId = $this->controllerId ? $this->controllerId : $this->controller->id;
     $config = require(dirname(__FILE__).DIRECTORY_SEPARATOR.'hybridauth/config.php');
     $this->registerFiles();
     foreach($config['providers'] as $provider => $settings)
