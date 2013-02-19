@@ -5,8 +5,8 @@
  *
  * The followings are the available columns in table 'user_oauth':
  * @property integer $user_id
- * @property string $name name of provider
- * @property string $value unique user authentication id that was returned by provider
+ * @property string $provider name of provider
+ * @property string $identifier unique user authentication id that was returned by provider
  * @property string $session_data session data with user profile
  */
 class UserOAuth extends CActiveRecord
@@ -15,6 +15,11 @@ class UserOAuth extends CActiveRecord
    * @var $_hybridauth HybridAuth class instance
    */
   protected $_hybridauth;
+
+  /**
+   * @var $_adapter HybridAuth adapter  
+   */
+  protected $_adapter;
 
 	/**
 	 * Returns the static model of the specified AR class.
@@ -25,12 +30,30 @@ class UserOAuth extends CActiveRecord
   {
     try
     {
-      return parent::model($className);
+      $model = parent::model($className);
+
+      // the try statement to correct my stupid column names in v1.0.1 of hoauth
+      // sory about this
+      try
+      {
+        // TODO: delete this in next versions
+        $model->provider=$model->provider;
+      }
+      catch(Exception $e)
+      {
+        ob_start();
+?>
+ALTER TABLE  `user_oauth` CHANGE  `name`  `provider` VARCHAR( 45 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL
+<?php
+        Yii::app()->db->createCommand(ob_get_clean())->execute();
+        Yii::app()->controller->refresh();
+      }
+      return $model;
     }
     catch(CDbException $e)
     {
-      $sql = file_get_contents(dirname(__FILE__).'/user_oauth.sql');
-      Yii::app()->db->createCommand($sql)->execute();
+      return self::createDbTable();
     }
 	}
 
@@ -59,9 +82,12 @@ class UserOAuth extends CActiveRecord
   {
     $params = array('user_id' => $user_id);
     if($provider)
-      $params['name'] = $provider;
-      
-    return $this->findAllByAttributes($params);
+    {
+      $params['provider'] = $provider;
+      return $this->findByAttributes($params);
+    }
+    else
+      return $this->findAllByAttributes($params);
   }
 
   /**
@@ -96,10 +122,69 @@ class UserOAuth extends CActiveRecord
    */
   public function getAdapter()
   {
-    if(!empty($this->session_data))
-      return $this->hybridAuth->getAdapter($this->name);
-    else
-      return null;
+    if(!isset($this->_adapter) && isset($this->session_data) && isset($this->provider))
+      $this->_adapter = $this->hybridAuth->getAdapter($this->provider);
+
+    return $this->_adapter;
+  }
+
+  /**
+   * authenticates user by specified adapter  
+   * 
+   * @param string $provider 
+   * @access public
+   * @return void
+   */
+  public function authenticate($provider)
+  {
+    if(empty($this->provider))
+    {
+      $this->_adapter = $this->hybridauth->authenticate($provider);
+      $this->provider = $provider;
+      $this->identifier = $this->profile->identifier;
+      $oAuth = self::model()->findByPk(array('provider' => $this->provider, 'identifier' => $this->identifier));
+      if($oAuth)
+        $this->setAttributes($oAuth->attributes, false);
+      else
+        $this->isNewRecord = true;
+
+      $this->session_data = $this->hybridauth->getSessionData();
+      return $this;
+    }
+
+    return null;
+  }
+
+  /**
+   * @access public
+   * @return Hybrid_User_Profile user social profile object
+   */
+  public function getProfile()
+  {
+    return $this->adapter->getUserProfile();
+  }
+
+  /**
+   * binds local user to current provider 
+   * 
+   * @param mixed $user_id id of the user
+   * @access public
+   * @return whether the model successfully saved
+   */
+  public function bindTo($user_id)
+  {
+    $this->user_id = $user_id;
+    return $this->save();
+  }
+
+  /**
+   * creates table for holding provider bindings  
+   */
+  protected static function createDbTable()
+  {
+    $sql = file_get_contents(dirname(__FILE__).'/user_oauth.sql');
+    Yii::app()->db->createCommand($sql)->execute();
+    return parent::model(__CLASS__);
   }
 
 	/**

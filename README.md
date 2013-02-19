@@ -2,6 +2,7 @@ hoauth
 ======
 
 hoauth extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net) in Yii.
+Automatically finds and supports `yii-user` module ([instruction for yii-user](https://github.com/Pststudio/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)).
 
 Requirements
 ------------
@@ -22,7 +23,7 @@ Available social networks
 * Vkontakte
 * AOL
 
-Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html)
+Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html). And how to configure them [here](http://hybridauth.sourceforge.net/userguide.html) at the bottom of the page.
 
 A little about how it's woks
 ----------------------------
@@ -40,21 +41,21 @@ Installation and Usage
 
 **1\.** Simply copy the files in your `extensions` directory (or in any other directory you want).
 
-**2\.** Edit yours controller source code (eg. `SiteController` class with `actionLogin()` method) to add new actions:
+**2\.** Edit your controller source code (eg. `SiteController` class with `actionLogin()` method) to add new actions:
 ```php
 class SiteController extends Controller
 {
-  /**
+	/**
 	 * Declares class-based actions.
 	 */
 	public function actions()
 	{
 		return array(
-			...
       'oauth' => array(
         // the list of additional properties of this action is below
         'class'=>'ext.hoauth.HOAuthAction',
         // Yii alias for your user's model, or simply class name, when it already on yii's import path
+        // default value of this property is: User
         'model' => 'User', 
         // map model attributes to attributes of user's social profile
         // model attribute => profile attribute
@@ -78,7 +79,6 @@ class SiteController extends Controller
       ),
 		);
 	}
-...
 }
 ```
 
@@ -99,7 +99,7 @@ class SiteController extends Controller
 
 **4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your `HybridAuth Endpoint URL` use this: http://yoursite.com/site/oauth. After install you can leave `install.php` in your file system, while it's in Yii protected directory. But you must **remove** `oauthadmin` action, or make such rules, that give access only for admin users.
 
-**5\.** Add social login widget to your login page view (you can use `controllerId` property, when you placing your widget not in the same controller as your `oauth` action):
+**5\.** Add social login widget to your login page view (you can use `route` property, when you placing your widget not in the same module/controller as your `oauth` action):
 ```php
 <?php $this->widget('ext.hoauth.HOAuthWidget'); ?>
 ```
@@ -114,6 +114,7 @@ And here is some additional fields, that I needed in my project, you can use the
 
 Additional properties for `HOAuthAction`
 ----------------------------------------
+* `useYiiUser` - enables support for `yii-user` (default: false). `hoauth` will find `yii-user` module automatically, so you can leave this property as default. You may also leave `attributes` and `model` properties as default.
 * `enabled` - defines whether the ouath functionality is active. Useful for example for CMS, where user can enable or disable oauth functionality in control panel. (default: true)
 * `scenario` - scenario name for the $model (optional)
 * `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
@@ -122,20 +123,20 @@ Additional properties for `HOAuthAction`
 `UserOAuth` model
 -----------------
 
-`UserOAuth` model used to bind social services to user's account and to store session with social network profile. If you want to use this data (user profile) later, please use `UserOAuth::getHybridAuth()` (It returns `Hybrid_Auth` object and restores session, when this is possible) or `UserOAuth::getAdapter()` (returns Adapter class, when we have user's HybridAuth `session_data`) method:
+`UserOAuth` model used to bind social services to user's account and to store session with social network profile. If you want to use this data (user profile) later, please use `UserOAuth::getProfile()` method:
 ```php
-$userOAuths = UserOAuth::findUser(5); // find all authorizations from user with id=5
+$userOAuths = UserOAuth::model()->findUser(5); // find all authorizations from user with id=5
 foreach($userOAuths as $userOAuth)
 {
-  $profile = $userOAuth->adapter->getUserProfile();
-  echo "Your email is {$profile->email} and social network - {$userOAuth->name}<br />";
+  $profile = $userOAuth->profile;
+  echo "Your email is {$profile->email} and social network - {$userOAuth->provider}<br />";
 }
 ```
 or
 ```php
-$userOAuth = UserOAuth::findUser(5, "Google"); // find all authorizations from user with id=5
-$profile = $userOAuth->adapter->getUserProfile();
-echo "Your email is {$profile->email} and social network - {$userOAuth->name}<br />";
+$userOAuth = UserOAuth::model()->findUser(5, "Google"); // find all authorizations from user with id=5
+$profile = $userOAuth->profile;
+echo "Your email is {$profile->email} and social network - {$userOAuth->provider}<br />";
 ```
 About how to use HybridAuth object you can read [here](http://hybridauth.sourceforge.net/userguide.html).
 

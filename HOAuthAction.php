@@ -3,7 +3,7 @@
  * HOAuthAction - this the main class in hoauth extension.
  * 
  * @uses CAction
- * @version 1.0
+ * @version 1.2
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
@@ -35,7 +35,7 @@ class HOAuthAction extends CAction
   /**
    * @var string $model yii alias for user model (or class name, when this model class exists in import path)
    */
-  public $model;
+  public $model = 'User';
 
   /**
    * @var array $attributes attributes synchronisation array (user model attribute => oauth attribute). List of avaible profile attributes you can see at {@link http://hybridauth.sourceforge.net/userguide/Profile_Data_User_Profile.html "HybridAuth's Documentation"}.
@@ -70,31 +70,57 @@ class HOAuthAction extends CAction
   public $duration = 2592000; // 30 days
 
   /**
+   * @var boolean $useYiiUser enables support of Yii user module
+   */
+  public $useYiiUser = false;
+
+  /**
    * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all avaible attributes in HybridAuth 2.0.11) + additional attributes (see $attributes)
    */
   protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
   
   public function run()
   {
-    if(!isset($this->model))
-      throw new CException('You must specify the model property for ' . __CLASS__);
+    $path = dirname(__FILE__);
+    // checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
+    if($this->useYiiUser || file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php'))
+    {
+      $this->useYiiUser = true;
+      // settung up yii-user's user model
+      Yii::import('application.modules.user.models.*');
+      require($path.'/DummyUserIdentity.php');
 
-    Yii::import($this->model, true);
-    $this->model = substr($this->model, strrpos($this->model, '.'));
+      // prepering attributes array for `yii-user` module
+      if(!is_array($this->attributes))
+        $this->attributes = array();
+
+      $this->attributes = CMap::mergeArray($this->attributes, array(
+        'email' => 'email',
+        'status' => User::STATUS_ACTIVE,
+      ));
+    }else{
+      Yii::import($this->model, true);
+      $this->model = substr($this->model, strrpos($this->model, '.'));
+
+      if(!method_exists($this->model, 'findByEmail'))
+        throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
+    }
 
     if(!isset($this->attributes) || !is_array($this->attributes) || !count($this->attributes))
       throw new CException('You must specify the model attributes for ' . __CLASS__);
 
+    if(!in_array('email', $this->attributes))
+      throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
+
     // openId login
-    $path = dirname(__FILE__);
     if($this->enabled)
     {
       if(isset($_GET['provider']))
       {
-        include($path.'/models/UserOAuth.php');
+        require($path.'/models/UserOAuth.php');
         $this->oAuth($_GET['provider']);
       }else{
-        include($path.'/hybridauth/index.php');
+        require($path.'/hybridauth/index.php');
         Yii::app()->end();
       }
     }
@@ -112,46 +138,64 @@ class HOAuthAction extends CAction
   protected function oAuth( $provider )
   {
     try{
-      $hybridauth = UserOAuth::model()->hybridAuth;
-      $adapter = $hybridauth->authenticate( $provider );
+      // trying to authenticate user via social network
+      $oAuth = UserOAuth::model()->authenticate( $provider );
+      $userProfile = $oAuth->profile;
 
-      // grab the user profile
-      $userProfile = $adapter->getUserProfile();
+      if( $userProfile->email )
+      {
+        // checking whether we already have a user with specified email
+        if(!$this->useYiiUser)
+          $user = call_user_func(array($this->model, 'model'))->findByEmail($userProfile->email);
+        else
+          $user = User::model()->findByAttributes(array('email' => $userProfile->email));
 
-      if( $userProfile->email ){
-        // checkin whether we already have a user with specified email
-        $user = call_user_func(array($this->model, 'model'))->findByEmail($userProfile->email);
-        
         if(!$user)
         {
           // registering a new user
           $user = new $this->model($this->scenario);
           $this->populateModel($user, $userProfile);
 
+          if($this->useYiiUser)
+          {
+            Profile::$regMode = true; // enabling register mode
+            $user->username = preg_replace('/[^A-Za-z0-9_]/u', '', $user->email);
+            /*
+            $email = explode('@', $user->email);
+            $user->username = $email[0];
+            if(!$user->validate() && in_array(UserModule::t("This user's name already exists."), $user->getErrors('username')))
+            {
+              // trying to generate unique username
+              $user->username = $user->username . (string)rand(100,999);
+            }    
+             */        
+          }
+
           if(!$user->save())
             throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
+
+          if($this->useYiiUser)
+          {
+            $profile = new Profile();
+            $profile->user_id = $user->primaryKey;
+            $profile->first_name = $userProfile->firstName;
+            $profile->last_name = $userProfile->lastName;
+
+            if(!$profile->save())
+              throw new Exception("Error, while saving " . get_class($profile) . "  model:\n\n" . var_export($user->errors, true));
+          }
         }
 
-        $identity = new UserIdentity($userProfile->email, null);
+        // sign user in
+        $identity = $this->useYiiUser
+          ? new DummyUserIdentity($user->primaryKey, $userProfile->email)
+          : new UserIdentity($userProfile->email, null);
 
-        Yii::app()->user->login($identity,$this->duration);
+        if(!Yii::app()->user->login($identity,$this->duration))
+          throw new Exception("Can't sign in, something wrong with UserIdentity class.");
 
-        # check if user already have authenticated using this provider before
-        $oAuth = UserOAuth::model()->findByPk(array('name' => $provider, 'value' => $userProfile->identifier));
-
-        if( !$oAuth ){
-          // Добавляем юзеру новую соц сеть
-          $oAuth = new UserOAuth;
-          $oAuth->setAttributes(array(
-            'user_id' => $user->primaryKey,
-            'name' => $provider,
-            'value' => $userProfile->identifier,
-          ), false);
-        }
-        $oAuth->session_data = $hybridauth->getSessionData();
-
-        if(!$oAuth->save())
-          throw new Exception("Error, while saving UserOAuth model:\n\n" . var_export($oAuth->errors, true));
+        if(!$oAuth->bindTo($user->primaryKey))
+          throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
       }
     }
     catch( Exception $e ){
