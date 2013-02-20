@@ -24,7 +24,8 @@ class HOAuthWidget extends CWidget
     if(!$this->route)
       $this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
     
-    $config = require(dirname(__FILE__).DIRECTORY_SEPARATOR.'hybridauth/config.php');
+    require(dirname(__FILE__).'/models/UserOAuth.php');
+    $config = UserOAuth::getConfig();
     $this->registerFiles();
     foreach($config['providers'] as $provider => $settings)
       if($settings['enabled'])

@@ -1,3 +1,7 @@
+Version 1.2.1
+-------------
+- It was decieded to move `HybridAuth` config file to the yii's config diretory and rename to `hoauth.php`. Extension will try to do it automatically, when config diretory is not writable, it will run with config file from old directory, but old directory has the deprecated status.
+
 Version 1.2
 -----------
 
