@@ -90,6 +90,7 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
 
       if(file_exists($oldConfig))
       {
+        // TODO: delete this in next versions
         if (is_writable($yiipath) && is_writable($oldConfig)) // trying to move old config to the new dir
           rename($oldConfig, $config);
         else
@@ -200,6 +201,15 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
   {
     $this->user_id = $user_id;
     return $this->save();
+  }
+
+  /**
+   * @access public
+   * @return whether this social network account bond to existing local account
+   */
+  public function getIsBond()
+  {
+    return !empty($this->user_id);
   }
 
   /**

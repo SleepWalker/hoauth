@@ -1,6 +1,9 @@
 Version 1.2.1
 -------------
 - It was decieded to move `HybridAuth` config file to the yii's config diretory and rename to `hoauth.php`. Extension will try to do it automatically, when config diretory is not writable, it will run with config file from old directory, but old directory has the deprecated status.
+- fixed bug with to long username, when registering user for `yii-user` extension.
+- Support of login from social networks, that returning no email (also added `HUserInfoForm` class).
+- updates in installation instructions
 
 Version 1.2
 -----------

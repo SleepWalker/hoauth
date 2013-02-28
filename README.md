@@ -103,6 +103,9 @@ class SiteController extends Controller
 ```php
 <?php $this->widget('ext.hoauth.HOAuthWidget'); ?>
 ```
+**Optional:**
+**6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword()` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
+**7\.** You can also declare the `sendActivationMail()` method, that should mark the user account as inactive and send the mail for activation. This method, when it's exists will be used for social networks like **Twitter** (because we need to proof that user entered the right email).
 
 Available social profile fields
 -------------------------------
@@ -119,6 +122,7 @@ Additional properties for `HOAuthAction`
 * `scenario` - scenario name for the $model (optional)
 * `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
 * `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
+* `usernameAttribute` - you can specify username attribute, when it must be unique (like in `yii-user` extension), that hoauth will try to validate it's uniqueness.
 
 `UserOAuth` model
 -----------------
