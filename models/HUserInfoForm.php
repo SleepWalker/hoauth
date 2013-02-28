@@ -220,7 +220,7 @@ class HUserInfoForm extends CFormModel {
           $index = array_search($message, $errors[$attribute]);
           if($index !== false)
           {
-            if(strpos($this->scenario, '_pass') === false)
+            if(strpos($this->scenario, '_pass') === false || empty($this->password))
               $errors[$attribute][$index] = HOAuthAction::t("This $attribute is taken by another user. If this is your account, enter password in field below or change $attribute and leave password blank.");
             else
               // when we have scenario with '_pass' and we are here, than user entered valid password, so we simply unsetting errors from uniqness check

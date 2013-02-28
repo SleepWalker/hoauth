@@ -193,13 +193,10 @@ class HOAuthAction extends CAction
 
             $form = new HUserInfoForm($scenario, $user, $this->_emailAttribute, $this->usernameAttribute);
 
-            if(!isset($_POST[get_class($form)]))
-            {
-              $form->setAttributes(array(
-                'email' => $userProfile->email,
-                'username' => $userProfile->displayName,
-              ), false);
-            }
+            $form->setAttributes(array(
+              'email' => $userProfile->email,
+              'username' => $userProfile->displayName,
+            ), false);
 
             if(!$form->validateUser())
             {
