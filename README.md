@@ -32,7 +32,7 @@ This extension authenticates and if it's need creates new user. When user was re
 
 In future releases, when it will be needed I can implement "classical algorithm": either local authorization or social authorization.
 
-**NOTE:** this extension requires `UserIdentity` class. It doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When your identity class has another name, you should edit `HOAuthAction` class.
+**NOTE:** this extension requires `UserIdentity` class. It doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When social network didn't give us user's email, the **hoauth** will ask user for email, when email exists in our db, the password will be asked too. At the end we bind provided by social network unique user identifier to user id for future sign in.
 
 **NOTE 2:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
 
@@ -97,12 +97,13 @@ class SiteController extends Controller
   }
 ```
 
-**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your `HybridAuth Endpoint URL` use this: http://yoursite.com/site/oauth. After install you can leave `install.php` in your file system, while it's in Yii protected directory. But you must **remove** `oauthadmin` action, or make such rules, that give access only for admin users.
+**4\.** Visit your `oauthadmin` action (eg. http://yoursite.com/site/oauthadmin) to create the HybridAuth config. For your `HybridAuth Endpoint URL` use this: http://yoursite.com/site/oauth. After install you can leave `install.php` in your file system, while it's in Yii protected directory. But you must **remove** `oauthadmin` action, or make such rules, that give access only for admin users. Config file can be found at `application.config.hoauth`
 
 **5\.** Add social login widget to your login page view (you can use `route` property, when you placing your widget not in the same module/controller as your `oauth` action):
 ```php
 <?php $this->widget('ext.hoauth.HOAuthWidget'); ?>
 ```
+
 **Optional:**
 **6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword()` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
 **7\.** You can also declare the `sendActivationMail()` method, that should mark the user account as inactive and send the mail for activation. This method, when it's exists will be used for social networks like **Twitter** (because we need to proof that user entered the right email).
@@ -144,8 +145,9 @@ echo "Your email is {$profile->email} and social network - {$userOAuth->provider
 ```
 About how to use HybridAuth object you can read [here](http://hybridauth.sourceforge.net/userguide.html).
 
-Opensource projects that used in this extension
------------------------------------------------
+Sources
+-------
 
 * [HybridAuth] (http://hybridauth.sourceforge.net)
 * [Zocial CSS3 Buttons] (https://github.com/samcollins/css-social-buttons/)
+* [Project page on Yii] (http://yiiframework.com/extension/hoauth/)
