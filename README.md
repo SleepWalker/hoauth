@@ -2,7 +2,7 @@ hoauth
 ======
 
 * hoauth extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net/) in Yii. (facebook, google, twitter, vkontakte and much more).
-* Automatically finds and supports `yii-user` module ([instruction for yii-user](https://github.com/Pststudio/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)).
+* Automatically finds and supports `yii-user` module ([instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)).
 
 Requirements
 ------------
