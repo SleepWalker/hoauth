@@ -203,6 +203,9 @@ class HOAuthAction extends CAction
       {
         // Display the recived error
         switch( $e->getCode() ){ 
+
+		$error = "";
+
         case 0 : $error = "Unspecified error."; break;
         case 1 : $error = "Hybriauth configuration error."; break;
         case 2 : $error = "Provider not properly configured."; break;
