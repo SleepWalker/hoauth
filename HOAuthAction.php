@@ -163,6 +163,11 @@ class HOAuthAction extends CAction
       $oAuth = UserOAuth::model()->authenticate( $provider );
       $userProfile = $oAuth->profile;
 
+    // If we already have a user logged in, associate the authenticated provider with the logged-in user
+  if(!Yii::app()->user->isGuest) {
+	$oAuth->bindTo(Yii::app()->user->id);
+  }
+  else {
       if(!$oAuth->isBond)
       {
         if(!empty($userProfile->emailVerified))
@@ -252,6 +257,7 @@ class HOAuthAction extends CAction
 
       if(!$oAuth->bindTo($user->primaryKey))
         throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
+  	  }
     }
     catch( Exception $e ){
       if(YII_DEBUG)
