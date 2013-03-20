@@ -323,31 +323,6 @@ class HOAuthAction extends CAction
     }
   }
 
-  public function setUsername($user, $userProfile)
-  {
-    $username = $this->useYiiUser ? 'username' : $this->usernameAttribute;
-    if(!$usernameAttribute) return false;
-
-    $user->$username = $userProfile->displayName;
-
-    foreach($this->getValidators($username) as $validator)
-    {
-      $type = get_class($validator);
-      $validator->validate($this,array($username));
-    }
-
-    $user->username = substr(preg_replace('/[^A-Za-z0-9_]/u', '', $user->email), 0, 20);
-            /*
-            $email = explode('@', $user->email);
-            $user->username = $email[0];
-            if(!$user->validate() && in_array(UserModule::t("This user's name already exists."), $user->getErrors('username')))
-            {
-              // trying to generate unique username
-              $user->username = $user->username . (string)rand(100,999);
-            }    
-             */        
-  }
-
   public function getUseYiiUser()
   {
     return self::$useYiiUser;

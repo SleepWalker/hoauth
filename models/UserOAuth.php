@@ -131,7 +131,7 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
     {
       $path = dirname(__FILE__) . '/../hybridauth';
 
-      require($path.'/Hybrid/Auth.php');
+      require_once($path.'/Hybrid/Auth.php');
       $this->_hybridauth = new Hybrid_Auth( self::getConfig() );
 
       if(!empty($this->session_data))
