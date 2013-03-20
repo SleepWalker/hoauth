@@ -73,6 +73,35 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
 		return array(
 		);
   }
+
+  /**
+   * @static
+   * @access public
+   * @return configuration array of HybridAuth lib
+   */
+  public static function getConfig()
+  {
+    $yiipath = Yii::getPathOfAlias('application.config');
+    $config = $yiipath . '/hoauth.php';
+
+    if(!file_exists($config))
+    {
+      $oldConfig = dirname(__FILE__) . '/../hybridauth' . '/config.php';
+
+      if(file_exists($oldConfig))
+      {
+        // TODO: delete this in next versions
+        if (is_writable($yiipath) && is_writable($oldConfig)) // trying to move old config to the new dir
+          rename($oldConfig, $config);
+        else
+          $config = $oldConfig;
+      }
+      else
+        throw new CException("The config.php file doesn't exists");
+    }
+
+    return require($config);
+  }
   
   /**
    * @access public
@@ -101,12 +130,9 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
     if(!isset($this->_hybridauth))
     {
       $path = dirname(__FILE__) . '/../hybridauth';
-      $config = $path . '/config.php';
-      if(!file_exists($config))
-        throw new CException("The config.php file doesn't exists");
 
-      require($path.'/Hybrid/Auth.php');
-      $this->_hybridauth = new Hybrid_Auth( $config );
+      require_once($path.'/Hybrid/Auth.php');
+      $this->_hybridauth = new Hybrid_Auth( self::getConfig() );
 
       if(!empty($this->session_data))
         $this->_hybridauth->restoreSessionData($this->session_data);
@@ -175,6 +201,15 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
   {
     $this->user_id = $user_id;
     return $this->save();
+  }
+
+  /**
+   * @access public
+   * @return whether this social network account bond to existing local account
+   */
+  public function getIsBond()
+  {
+    return !empty($this->user_id);
   }
 
   /**
