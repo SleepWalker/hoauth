@@ -105,8 +105,8 @@ class SiteController extends Controller
 ```
 
 **Optional:**
-**6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword()` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
-**7\.** You can also declare the `sendActivationMail()` method, that should mark the user account as inactive and send the mail for activation. This method, when it's exists will be used for social networks like **Twitter** (because we need to proof that user entered the right email).
+**6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword($password)` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
+**7\.** You can also declare the `sendActivationMail()` method, that should mark the user account as inactive and send the mail for activation. This method, when it's exists will be used for social networks like **Twitter**, that give us no data about user's email (because we need to proof that user entered the right email).
 
 Available social profile fields
 -------------------------------
@@ -151,3 +151,4 @@ Sources
 * [HybridAuth] (http://hybridauth.sourceforge.net)
 * [Zocial CSS3 Buttons] (https://github.com/samcollins/css-social-buttons/)
 * [Project page on Yii] (http://yiiframework.com/extension/hoauth/)
+* [instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)
