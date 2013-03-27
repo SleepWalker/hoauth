@@ -81,8 +81,12 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
    */
   public static function getConfig()
   {
-    $yiipath = Yii::getPathOfAlias('application.config');
-    $config = $yiipath . '/hoauth.php';
+    $config = Yii::app()->params['hoauth']['configAlias'];
+    if(empty($config))
+    {
+      $yiipath = Yii::getPathOfAlias('application.config.hoauth');
+      $config = $yiipath . '.php';
+    }
 
     if(!file_exists($config))
     {
