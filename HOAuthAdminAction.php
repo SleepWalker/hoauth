@@ -25,7 +25,8 @@ class HOAuthAdminAction extends CAction
       $endpoint_url = $this->route;
 
     $endpoint_url = Yii::app()->createAbsoluteUrl($endpoint_url . '/oauth');
-    $config_path = Yii::getPathOfAlias('application.config') . '/hoauth.php';
+    require_once(dirname(__FILE__).'/models/UserOAuth.php');
+    $config_path = UserOAuth::getConfigPath();
 
     include($path.'/hybridauth/install.php');
     Yii::app()->end();
