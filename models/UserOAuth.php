@@ -81,12 +81,7 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
    */
   public static function getConfig()
   {
-    $config = Yii::app()->params['hoauth']['configAlias'];
-    if(empty($config))
-    {
-      $yiipath = Yii::getPathOfAlias('application.config.hoauth');
-      $config = $yiipath . '.php';
-    }
+    $config = self::getConfigPath();
 
     if(!file_exists($config))
     {
@@ -105,6 +100,21 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
     }
 
     return require($config);
+  }
+
+  /**
+   * @return path to the HybridAuth config file
+   */
+  public static function getConfigPath()
+  {
+    $config = Yii::app()->params['hoauth']['configAlias'];
+    if(empty($config))
+    {
+      $yiipath = Yii::getPathOfAlias('application.config.hoauth');
+    }
+    $config = $yiipath . '.php';
+
+    return $config;
   }
   
   /**
