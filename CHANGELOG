@@ -1,6 +1,7 @@
 Version 1.2.2
 -------------
 - Enh#7: added ability to setup alias (by default is application.config.hoauth) of HybridAuth config file in yii config (Yii::app()->params['hoauth']['configAlias']) (SleepWalker)
+- Support of `yii-user` version, when Profile::regMode isn't static property
 
 Version 1.2.1
 -------------
