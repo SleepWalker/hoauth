@@ -93,7 +93,7 @@ class HOAuthAction extends CAction
    * @var ALIAS the alias of extension (you can change this, when you have put this extension in another dir)
    */
   const ALIAS = 'ext.hoauth';
-  
+
   public function run()
   {
     $path = dirname(__FILE__);
@@ -163,130 +163,130 @@ class HOAuthAction extends CAction
       $oAuth = UserOAuth::model()->authenticate( $provider );
       $userProfile = $oAuth->profile;
 
-    // If we already have a user logged in, associate the authenticated provider with the logged-in user
-  if(!Yii::app()->user->isGuest) {
-	$oAuth->bindTo(Yii::app()->user->id);
-  }
-  else {
-      if(!$oAuth->isBond)
-      {
-        if(!empty($userProfile->emailVerified))
+      // If we already have a user logged in, associate the authenticated provider with the logged-in user
+      if(!Yii::app()->user->isGuest) {
+        $oAuth->bindTo(Yii::app()->user->id);
+      }
+      else {
+        if(!$oAuth->isBond)
         {
-          // checking whether we already have a user with specified email
-          if($this->useYiiUser)
-            $user = User::model()->findByAttributes(array('email' => $userProfile->emailVerified));
-          else
-            $user = call_user_func(array($this->model, 'model'))->findByEmail($userProfile->emailVerified);
-        }
-
-        if(!$user)
-        {
-          if($this->useYiiUser)
+          if(!empty($userProfile->emailVerified))
           {
-            $profile = new Profile();
-            // enabling register mode
-            // old versions of yii
-            $profile->regMode = true;
-            // new version, when regMode is static property
-            $prop = new ReflectionProperty('Profile', 'regMode');
-            if($prop->isStatic())
-              Profile::$regMode = true;
+            // checking whether we already have a user with specified email
+            if($this->useYiiUser)
+              $user = User::model()->findByAttributes(array('email' => $userProfile->emailVerified));
+            else
+              $user = call_user_func(array($this->model, 'model'))->findByEmail($userProfile->emailVerified);
           }
 
-          // registering a new user
-          $user = new $this->model($this->scenario);
-          $this->populateModel($user, $userProfile);
-
-          // trying to fill email and username fields
-          if(empty($userProfile->emailVerified) || $this->usernameAttribute || !$user->validate())
+          if(!$user)
           {
-            $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute
-              ? 'both' 
-              : (empty($userProfile->emailVerified)
-              ? 'email' : 'username');
-
-            $form = new HUserInfoForm($scenario, $user, $this->_emailAttribute, $this->usernameAttribute);
-
-            $form->setAttributes(array(
-              'email' => $userProfile->email,
-              'username' => $userProfile->displayName,
-            ), false);
-
-            if(!$form->validateUser())
-            {
-              $this->controller->render(self::ALIAS.'.views.form', array(
-                'form' => $form,
-              ));
-              Yii::app()->end();
-            }
-
-            // updating attributes in $user model (if needed)
-            $form->sync();
-
-            if($form->model !== $user)
-              // user provided correct password for existing account
-              // so we using the model of that account
-              $user = $form->model;
-          }
-
-          // the model won't be new, if user provided email and password of existing account
-          if($user->isNewRecord) 
-          {
-            if(!$user->save())
-              throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
-
             if($this->useYiiUser)
             {
-              $profile->user_id = $user->primaryKey;
-              $profile->first_name = $userProfile->firstName;
-              $profile->last_name = $userProfile->lastName;
+              $profile = new Profile();
+              // enabling register mode
+              // old versions of yii
+              $profile->regMode = true;
+              // new version, when regMode is static property
+              $prop = new ReflectionProperty('Profile', 'regMode');
+              if($prop->isStatic())
+                Profile::$regMode = true;
+            }
 
-              if(!$profile->save())
-                throw new Exception("Error, while saving " . get_class($profile) . "  model:\n\n" . var_export($user->errors, true));
+            // registering a new user
+            $user = new $this->model($this->scenario);
+            $this->populateModel($user, $userProfile);
+
+            // trying to fill email and username fields
+            if(empty($userProfile->emailVerified) || $this->usernameAttribute || !$user->validate())
+            {
+              $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute
+                ? 'both' 
+                : (empty($userProfile->emailVerified)
+                ? 'email' : 'username');
+
+              $form = new HUserInfoForm($scenario, $user, $this->_emailAttribute, $this->usernameAttribute);
+
+              $form->setAttributes(array(
+                'email' => $userProfile->email,
+                'username' => $userProfile->displayName,
+              ), false);
+
+              if(!$form->validateUser())
+              {
+                $this->controller->render(self::ALIAS.'.views.form', array(
+                  'form' => $form,
+                ));
+                Yii::app()->end();
+              }
+
+              // updating attributes in $user model (if needed)
+              $form->sync();
+
+              if($form->model !== $user)
+                // user provided correct password for existing account
+                // so we using the model of that account
+                $user = $form->model;
+            }
+
+            // the model won't be new, if user provided email and password of existing account
+            if($user->isNewRecord) 
+            {
+              if(!$user->save())
+                throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
+
+              if($this->useYiiUser)
+              {
+                $profile->user_id = $user->primaryKey;
+                $profile->first_name = $userProfile->firstName;
+                $profile->last_name = $userProfile->lastName;
+
+                if(!$profile->save())
+                  throw new Exception("Error, while saving " . get_class($profile) . "  model:\n\n" . var_export($user->errors, true));
+              }
             }
           }
+        }else{
+          // this social network account is bond to existing local account
+          Yii::log("Logged in with existing link with '$provider' provider", CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
+          if($this->useYiiUser)
+            $user = User::model()->findByPk($oAuth->user_id);
+          else
+            $user = call_user_func(array($this->model, 'model'))->findByPk($oAuth->user_id);
         }
-      }else{
-        // this social network account is bond to existing local account
-        Yii::log("Logged in with existing link with '$provider' provider", CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
-        if($this->useYiiUser)
-          $user = User::model()->findByPk($oAuth->user_id);
-        else
-          $user = call_user_func(array($this->model, 'model'))->findByPk($oAuth->user_id);
+
+        // sign user in
+        $identity = $this->useYiiUser
+          ? new DummyUserIdentity($user->primaryKey, $user->email)
+          : new UserIdentity($user->email, null);
+
+        if(!Yii::app()->user->login($identity,$this->duration))
+          throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+
+        if(!$oAuth->bindTo($user->primaryKey))
+          throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
       }
-
-      // sign user in
-      $identity = $this->useYiiUser
-        ? new DummyUserIdentity($user->primaryKey, $user->email)
-        : new UserIdentity($user->email, null);
-
-      if(!Yii::app()->user->login($identity,$this->duration))
-        throw new Exception("Can't sign in, something wrong with UserIdentity class.");
-
-      if(!$oAuth->bindTo($user->primaryKey))
-        throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
-  	  }
     }
     catch( Exception $e ){
       if(YII_DEBUG)
       {
-      	$error = "";
-      	
+        $error = "";
+
         // Display the recived error
         switch( $e->getCode() ){ 
-	        case 0 : $error = "Unspecified error."; break;
-	        case 1 : $error = "Hybriauth configuration error."; break;
-	        case 2 : $error = "Provider not properly configured."; break;
-	        case 3 : $error = "Unknown or disabled provider."; break;
-	        case 4 : $error = "Missing provider application credentials."; break;
-	        case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
-	        case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
-		        $adapter->logout(); 
-		        break;
-	        case 7 : $error = "User not connected to the provider."; 
-		        $adapter->logout(); 
-		        break;
-	        case 8 : $error = "Provider does not support this feature.";  break;
+        case 0 : $error = "Unspecified error."; break;
+        case 1 : $error = "Hybriauth configuration error."; break;
+        case 2 : $error = "Provider not properly configured."; break;
+        case 3 : $error = "Unknown or disabled provider."; break;
+        case 4 : $error = "Missing provider application credentials."; break;
+        case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
+        case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+        $adapter->logout(); 
+        break;
+        case 7 : $error = "User not connected to the provider."; 
+        $adapter->logout(); 
+        break;
+        case 8 : $error = "Provider does not support this feature.";  break;
         }
 
         $error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage(); 
