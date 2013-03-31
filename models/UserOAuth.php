@@ -182,29 +182,26 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
       try
       {
         $this->_adapter = $this->hybridauth->authenticate($provider);
-      $this->provider = $provider;
-      $this->identifier = $this->profile->identifier;
-      $oAuth = self::model()->findByPk(array('provider' => $this->provider, 'identifier' => $this->identifier));
-      if($oAuth)
-        $this->setAttributes($oAuth->attributes, false);
-      else
-        $this->isNewRecord = true;
+        $this->provider = $provider;
+        $this->identifier = $this->profile->identifier;
+        $oAuth = self::model()->findByPk(array('provider' => $this->provider, 'identifier' => $this->identifier));
+        if($oAuth)
+          $this->setAttributes($oAuth->attributes, false);
+        else
+          $this->isNewRecord = true;
 
-      $this->session_data = $this->hybridauth->getSessionData();
-      return $this;
+        $this->session_data = $this->hybridauth->getSessionData();
+        return $this;
       }
       catch( Exception $e )
       {
         $error = "";
         switch( $e->getCode() )
         { 
-        case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+        case 6 : //$error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+        case 7 : //$error = "User not connected to the provider."; 
         $this->_adapter->logout(); 
-        $this->authenticate($provider);
-        break;
-        case 7 : $error = "User not connected to the provider."; 
-        $this->_adapter->logout(); 
-        $this->authenticate($provider);
+        return $this->authenticate($provider);
         break;
         }
       }

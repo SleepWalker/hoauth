@@ -93,7 +93,7 @@ class HOAuthAction extends CAction
    * @var ALIAS the alias of extension (you can change this, when you have put this extension in another dir)
    */
   const ALIAS = 'ext.hoauth';
-  
+
   public function run()
   {
     $path = dirname(__FILE__);
@@ -182,7 +182,16 @@ class HOAuthAction extends CAction
           if(!$user)
           {
             if($this->useYiiUser)
-              Profile::$regMode = true; // enabling register mode
+            {
+              $profile = new Profile();
+              // enabling register mode
+              // old versions of yii
+              $profile->regMode = true;
+              // new version, when regMode is static property
+              $prop = new ReflectionProperty('Profile', 'regMode');
+              if($prop->isStatic())
+                Profile::$regMode = true;
+            }
 
             // registering a new user
             $user = new $this->model($this->scenario);
@@ -228,7 +237,6 @@ class HOAuthAction extends CAction
 
               if($this->useYiiUser)
               {
-                $profile = new Profile();
                 $profile->user_id = $user->primaryKey;
                 $profile->first_name = $userProfile->firstName;
                 $profile->last_name = $userProfile->lastName;
