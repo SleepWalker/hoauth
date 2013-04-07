@@ -81,8 +81,7 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
    */
   public static function getConfig()
   {
-    $yiipath = Yii::getPathOfAlias('application.config');
-    $config = $yiipath . '/hoauth.php';
+    $config = self::getConfigPath();
 
     if(!file_exists($config))
     {
@@ -101,6 +100,21 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
     }
 
     return require($config);
+  }
+
+  /**
+   * @return path to the HybridAuth config file
+   */
+  public static function getConfigPath()
+  {
+    $config = Yii::app()->params['hoauth']['configAlias'];
+    if(empty($config))
+    {
+      $yiipath = Yii::getPathOfAlias('application.config.hoauth');
+    }
+    $config = $yiipath . '.php';
+
+    return $config;
   }
   
   /**
@@ -165,17 +179,32 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
   {
     if(empty($this->provider))
     {
-      $this->_adapter = $this->hybridauth->authenticate($provider);
-      $this->provider = $provider;
-      $this->identifier = $this->profile->identifier;
-      $oAuth = self::model()->findByPk(array('provider' => $this->provider, 'identifier' => $this->identifier));
-      if($oAuth)
-        $this->setAttributes($oAuth->attributes, false);
-      else
-        $this->isNewRecord = true;
+      try
+      {
+        $this->_adapter = $this->hybridauth->authenticate($provider);
+        $this->provider = $provider;
+        $this->identifier = $this->profile->identifier;
+        $oAuth = self::model()->findByPk(array('provider' => $this->provider, 'identifier' => $this->identifier));
+        if($oAuth)
+          $this->setAttributes($oAuth->attributes, false);
+        else
+          $this->isNewRecord = true;
 
-      $this->session_data = $this->hybridauth->getSessionData();
-      return $this;
+        $this->session_data = $this->hybridauth->getSessionData();
+        return $this;
+      }
+      catch( Exception $e )
+      {
+        $error = "";
+        switch( $e->getCode() )
+        { 
+        case 6 : //$error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+        case 7 : //$error = "User not connected to the provider."; 
+        $this->_adapter->logout(); 
+        return $this->authenticate($provider);
+        break;
+        }
+      }
     }
 
     return null;

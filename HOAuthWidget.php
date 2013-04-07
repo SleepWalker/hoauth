@@ -25,7 +25,7 @@ class HOAuthWidget extends CWidget
     if(!$this->route)
       $this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
     
-    require(dirname(__FILE__).'/models/UserOAuth.php');
+    require_once(dirname(__FILE__).'/models/UserOAuth.php');
     $config = UserOAuth::getConfig();
     $this->registerFiles();
     foreach($config['providers'] as $provider => $settings)
