@@ -18,13 +18,14 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `user_oauth`
+-- Структура таблицы `{{user_oauth}}`
 --
-DROP TABLE IF EXISTS `user_oauth`;
-CREATE TABLE IF NOT EXISTS `user_oauth` (
+DROP TABLE IF EXISTS `{{user_oauth}}`;
+CREATE TABLE IF NOT EXISTS `{{user_oauth}}` (
   `user_id` int(11) NOT NULL,
   `provider` varchar(45) NOT NULL,
   `identifier` varchar(64) NOT NULL,
+  `profile_cache` text,
   `session_data` text,
   PRIMARY KEY (`provider`,`identifier`),
   UNIQUE KEY `unic_user_id_name` (`user_id`,`provider`),
