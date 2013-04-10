@@ -264,13 +264,15 @@ class HUserInfoForm extends CFormModel {
 
       if(HOAuthAction::$useYiiUser)
       {
-        $this->model->status = User::STATUS_NOACTIVE;
+        $this->model->superuser = 0;
+        $this->model->status=((Yii::app()->controller->module->activeAfterRegister)?User::STATUS_ACTIVE:User::STATUS_NOACTIVE);
+         $this->model->activkey=UserModule::encrypting(microtime().$this->model->email);
 
         // why not to put this code not in controller, but in the User model of `yii-user` module?
         // for now I can only copy-paste this code from controller...
         if (Yii::app()->getModule('user')->sendActivationMail) {
-          $activation_url = $this->createAbsoluteUrl('/user/activation/activation',array("activkey" => $this->model->activkey, "email" => $this->email));
-          UserModule::sendMail($this->email,UserModule::t("You registered from {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("Please activate you account go to {activation_url}",array('{activation_url}'=>$activation_url)));
+          $activation_url = Yii::app()->createAbsoluteUrl('/user/activation/activation',array("activkey" => $this->model->activkey, "email" => $this->model->email));
+          UserModule::sendMail($this->model->email,UserModule::t("You registered on {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("To activate your account, please go to {activation_url}",array('{activation_url}'=>$activation_url)));
         }
       }else{
         if(!method_exists($this->model, 'sendActivationMail'))

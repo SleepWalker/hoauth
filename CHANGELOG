@@ -3,7 +3,9 @@ Version 1.2.2
 - Enh#7: added ability to setup alias (by default is application.config.hoauth) of HybridAuth config file in yii config (Yii::app()->params['hoauth']['configAlias'])
 - Support of `yii-user` version, when Profile::regMode isn't static property
 - Fixed issue when password field apeared, when it should not do so during social network signup
+- Support of sending activation email by `yii-user` module
 - Added support of `yii-user` banned and not activated account status
+- Ability to register a new account with the same SN, when in db still exists SN relation to account that was deleted
 
 Version 1.2.1
 -------------

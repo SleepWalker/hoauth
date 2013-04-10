@@ -168,7 +168,17 @@ class HOAuthAction extends CAction
         $oAuth->bindTo(Yii::app()->user->id);
       }
       else {
-        if(!$oAuth->isBond)
+        if($oAuth->isBond)
+        {
+          // this social network account is bond to existing local account
+          Yii::log("Logged in with existing link with '$provider' provider", CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
+          if($this->useYiiUser)
+            $user = User::model()->findByPk($oAuth->user_id);
+          else
+            $user = call_user_func(array($this->model, 'model'))->findByPk($oAuth->user_id);
+        }
+
+        if(!$oAuth->isBond || !$user)
         {
           if(!empty($userProfile->emailVerified))
           {
@@ -246,13 +256,6 @@ class HOAuthAction extends CAction
               }
             }
           }
-        }else{
-          // this social network account is bond to existing local account
-          Yii::log("Logged in with existing link with '$provider' provider", CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
-          if($this->useYiiUser)
-            $user = User::model()->findByPk($oAuth->user_id);
-          else
-            $user = call_user_func(array($this->model, 'model'))->findByPk($oAuth->user_id);
         }
 
         // checking if current user is not banned or anything else
