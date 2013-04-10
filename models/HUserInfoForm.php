@@ -198,11 +198,20 @@ class HUserInfoForm extends CFormModel {
 
     foreach($validators as $validator)
     {
-      $validator->validate($user, $attributes);
-      if(get_class($validator) == 'CUniqueValidator' && !$valid)
-        // we ignore uniqness checks (this checks if user with specified email or username registered), 
-        // because we will ask user for password, to check if this account belongs to him
-        $ignored[] = $validator->message;
+      foreach($attributes as $attribute)
+      {
+        // we need to determine if we have a new errors
+        $errorsBefore = count($user->getErrors($attribute));
+        $validator->validate($user, array($attribute));
+        $errorsAfter =  count($user->getErrors($attribute));
+        if(get_class($validator) == 'CUniqueValidator' && $errorsBefore < $errorsAfter)
+        {
+          // we ignore uniqness checks (this checks if user with specified email or username registered), 
+          // because we will ask user for password, to check if this account belongs to him
+          $errors = $user->getErrors($attribute);
+          $ignored[] = end($errors);
+        }
+      }
     }
 
     $errors = array(
