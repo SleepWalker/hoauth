@@ -255,6 +255,9 @@ class HOAuthAction extends CAction
             $user = call_user_func(array($this->model, 'model'))->findByPk($oAuth->user_id);
         }
 
+        // checking if current user is not banned or anything else
+        $this->yiiUserCheckAccess($user);
+
         // sign user in
         $identity = $this->useYiiUser
           ? new DummyUserIdentity($user->primaryKey, $user->email)
@@ -336,6 +339,31 @@ class HOAuthAction extends CAction
       }else{
         $user->$attribute = $pAtt;
       }
+    }
+  }
+
+  /**
+   * Checks wheter the $user can be logged in
+   */
+  protected function yiiUserCheckAccess($user)
+  {
+    if(!$this->useYiiUser)
+      return false;
+
+    if($user->status==0&&Yii::app()->getModule('user')->loginNotActiv==false)
+      $error = UserIdentity::ERROR_STATUS_NOTACTIV;
+    else if($user->status==-1)
+      $error = UserIdentity::ERROR_STATUS_BAN;
+    else 
+      $error = UserIdentity::ERROR_NONE;
+
+    if($error)
+    {
+      $this->controller->render(self::ALIAS.'.views.yiiUserError', array(
+        'errorCode' => $error,
+        'user' => $user,
+      ));
+      Yii::app()->end();
     }
   }
 
