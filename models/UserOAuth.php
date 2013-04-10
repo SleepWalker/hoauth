@@ -7,6 +7,7 @@
  * @property integer $user_id
  * @property string $provider name of provider
  * @property string $identifier unique user authentication id that was returned by provider
+ * @property string $profile_cache
  * @property string $session_data session data with user profile
  */
 class UserOAuth extends CActiveRecord
@@ -61,6 +62,22 @@ class UserOAuth extends CActiveRecord
 	{
 		return array(
 		);
+  }
+
+  public function afterFind()
+  {
+    parent::afterFind();
+
+    if(!empty($this->profile_cache))
+      $this->profile_cache = (object)unserialize($this->profile_cache);
+  }
+
+  public function beforeSave() 
+  {
+    if(!empty($this->profile_cache))
+      $this->profile_cache = serialize((array)$this->profile_cache);
+
+    return parent::beforeSave();
   }
 
   /**
@@ -216,7 +233,11 @@ class UserOAuth extends CActiveRecord
    */
   public function getProfile()
   {
-    return $this->adapter->getUserProfile();
+    $profile = $this->adapter->getUserProfile();
+    //caching profile
+    $this->profile_cache = $profile;
+
+    return $profile;
   }
 
   /**
@@ -239,6 +260,22 @@ class UserOAuth extends CActiveRecord
   public function getIsBond()
   {
     return !empty($this->user_id);
+  }
+
+  /**
+   * Getter for cached profile.
+   * We implement this method, because in older version of hoauth was no profile cache. So we need to fill db with caches
+   * The second reason is camelCase
+   */
+  public function getProfileCache()
+  {
+    if(empty($this->profile_cache))
+    {
+      $this->profile_cache = $this->profile;
+      $this->save();
+    }
+
+    return $this->profile_cache;
   }
 
   /**
