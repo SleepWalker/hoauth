@@ -32,28 +32,14 @@ class UserOAuth extends CActiveRecord
     {
       $model = parent::model($className);
 
-      // the try statement to correct my stupid column names in v1.0.1 of hoauth
-      // sory about this
-      try
-      {
-        // TODO: delete this in next versions
-        $model->provider=$model->provider;
-      }
-      catch(Exception $e)
-      {
-        ob_start();
-?>
-ALTER TABLE  `user_oauth` CHANGE  `name`  `provider` VARCHAR( 45 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL
-<?php
-        Yii::app()->db->createCommand(ob_get_clean())->execute();
-        Yii::app()->controller->refresh();
-      }
+      // db updates 'on the fly'
+      $model->updateDb($model);
+
       return $model;
     }
     catch(CDbException $e)
     {
-      return self::createDbTable();
+      self::createDbTable();
     }
 	}
 
@@ -62,7 +48,10 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
 	 */
 	public function tableName()
 	{
-		return 'user_oauth';
+    if(!empty(Yii::app()->db->tablePrefix))
+      return '{{user_oauth}}';
+    else
+      return 'user_oauth';
 	}
 
 	/**
@@ -231,9 +220,64 @@ CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_gene
    */
   protected static function createDbTable()
   {
+    //TODO: remove me in newer versions
+    if(Yii::app()->db->getSchema()->getTable('user_oauth') !== null && !empty(Yii::app()->db->tablePrefix))
+    {
+      // providing table rename, to handle support of prefixed tables in v.1.2.2
+      Yii::app()->db->createCommand('RENAME TABLE  `user_oauth` TO `tbl_user_oauth`')->execute();
+      Yii::app()->controller->refresh();
+    }
+
     $sql = file_get_contents(dirname(__FILE__).'/user_oauth.sql');
+    $sql = strtr($sql, array('{{user_oauth}}' => Yii::app()->db->tablePrefix . 'user_oauth'));
     Yii::app()->db->createCommand($sql)->execute();
-    return parent::model(__CLASS__);
+    Yii::app()->controller->refresh();
+  }
+
+  /**
+   * Runs DB updates on the fly
+   */
+  public function updateDb($model)
+  {
+    $updates = array();
+    // the try statement to correct my stupid column names in v1.0.1 of hoauth
+    // sory about this
+    try
+    {
+      $model->provider=$model->provider;
+    }
+    catch(Exception $e)
+    {
+      ob_start();
+?>
+ALTER TABLE  <?php echo '`' . $model->tableName() . '`'; ?> CHANGE  `name`  `provider` VARCHAR( 45 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+CHANGE  `value`  `identifier` VARCHAR( 64 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL
+<?php
+      $updates[] = ob_get_clean();
+    }
+
+    // profile caching since v.1.2.2
+    try
+    {
+      $model->profile_cache=$model->profile_cache;
+    }
+    catch(Exception $e)
+    {
+      ob_start();
+?>
+  ALTER TABLE <?php echo '`' . $model->tableName() . '`'; ?> ADD  `profile_cache` TEXT NOT NULL AFTER  `identifier`
+<?php
+      $updates[] = ob_get_clean();
+    }
+
+    if(count($updates))
+    {
+      foreach($updates as $sql)
+      {
+        Yii::app()->db->createCommand($sql)->execute();
+      }
+      Yii::app()->controller->refresh();
+    }
   }
 
 	/**
