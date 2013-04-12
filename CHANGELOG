@@ -8,6 +8,7 @@ Version 1.2.2
 - Support of sending activation email by `yii-user` module
 - Added support of `yii-user` banned and not activated account status
 - Ability to register a new account with the same SN, when in db still exists SN relation to account that was deleted
+- HOAuthWidget moved to widgets directory (see UPGRADE.md)
 
 Version 1.2.1
 -------------
