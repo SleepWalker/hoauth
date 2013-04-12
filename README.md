@@ -101,7 +101,7 @@ class SiteController extends Controller
 
 **5\.** Add social login widget to your login page view (you can use `route` property, when you placing your widget not in the same module/controller as your `oauth` action):
 ```php
-<?php $this->widget('ext.hoauth.HOAuthWidget'); ?>
+<?php $this->widget('ext.hoauth.widget.HOAuth'); ?>
 ```
 
 **Optional:**

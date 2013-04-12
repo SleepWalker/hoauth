@@ -1,6 +1,7 @@
 <?php
 /**
- * HOAuthWidget provides widgets with button for login with social networs
+ * HOAuth provides widget with buttons for login with social networs 
+ * that enabled in HybridAuth config
  * 
  * @uses CWidget
  * @version 1.2.1
@@ -13,7 +14,7 @@
 /**
  * NOTE: If you want to change the order of button it is better to change this order in HybridAuth config.php file
  */
-class HOAuthWidget extends CWidget
+class HOAuth extends CWidget
 {
   /**
    * @var string $route id of module and controller (eg. module/controller) for wich to generate oauth urls
@@ -25,7 +26,7 @@ class HOAuthWidget extends CWidget
     if(!$this->route)
       $this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
     
-    require(dirname(__FILE__).'/models/UserOAuth.php');
+    require_once(dirname(__FILE__).'/../models/UserOAuth.php');
     $config = UserOAuth::getConfig();
     $this->registerFiles();
     foreach($config['providers'] as $provider => $settings)
