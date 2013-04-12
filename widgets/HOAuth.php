@@ -4,7 +4,7 @@
  * that enabled in HybridAuth config
  * 
  * @uses CWidget
- * @version 1.2.1
+ * @version 1.2.2
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})

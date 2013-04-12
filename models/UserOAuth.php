@@ -9,6 +9,13 @@
  * @property string $identifier unique user authentication id that was returned by provider
  * @property string $profile_cache
  * @property string $session_data session data with user profile
+ *
+ *
+ * @version 1.2.2
+ * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
+ * @author Sviatoslav Danylenko <dev@udf.su> 
+ * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
+ * @link https://github.com/SleepWalker/hoauth
  */
 class UserOAuth extends CActiveRecord
 {

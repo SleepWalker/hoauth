@@ -3,7 +3,7 @@
  * HOAuthAction - this the main class in hoauth extension.
  * 
  * @uses CAction
- * @version 1.2.1
+ * @version 1.2.2
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
