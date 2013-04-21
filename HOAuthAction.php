@@ -210,7 +210,8 @@ class HOAuthAction extends CAction
             // trying to fill email and username fields
             if(empty($userProfile->emailVerified) || $this->usernameAttribute || !$user->validate())
             {
-              $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute
+              // NOTE: we display `username` field only if it is required by the model
+              $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute && $user->isAttributeRequired($this->usernameAttribute)
                 ? 'both' 
                 : (empty($userProfile->emailVerified)
                 ? 'email' : 'username');

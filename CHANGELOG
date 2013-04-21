@@ -1,3 +1,7 @@
+The new one
+-----------
+- yii-user: we display `username` field only if it is required by the model, so you can disable `username` field in `yii-user`.
+
 Version 1.2.2
 -------------
 - Enh#6: support of prefixed table names
