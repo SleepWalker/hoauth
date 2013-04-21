@@ -1,6 +1,6 @@
 The new one
 -----------
-- yii-user: we display `username` field only if it is required by the model, so you can disable `username` field in `yii-user`.
+- yii-user: we display `username` field only if it is required by the `User` model, so you can disable `username` field in `yii-user`.
 
 Version 1.2.2
 -------------

@@ -208,7 +208,7 @@ class HOAuthAction extends CAction
             $this->populateModel($user, $userProfile);
 
             // trying to fill email and username fields
-            if(empty($userProfile->emailVerified) || $this->usernameAttribute || !$user->validate())
+            if(empty($userProfile->emailVerified) || $user->isAttributeRequired($this->usernameAttribute) || !$user->validate())
             {
               // NOTE: we display `username` field only if it is required by the model
               $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute && $user->isAttributeRequired($this->usernameAttribute)
@@ -333,7 +333,7 @@ class HOAuthAction extends CAction
             : null;
           break;
         case 'email':
-          $att = 'emailVerified';
+          $att = $profile->emailVerified;
           break;
         default:
           $att = $profile->$pAtt;
