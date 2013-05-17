@@ -29,6 +29,12 @@ class UserOAuth extends CActiveRecord
    */
   protected $_adapter;
 
+  /**
+   * @var $_profileCache property for holding of unserialized 
+   *      profile cache copy
+   */
+  protected $_profileCache;
+
 	/**
 	 * Returns the static model of the specified AR class.
 	 * @param string $className active record class name.
@@ -76,13 +82,13 @@ class UserOAuth extends CActiveRecord
     parent::afterFind();
 
     if(!empty($this->profile_cache))
-      $this->profile_cache = (object)unserialize($this->profile_cache);
+      $this->_profileCache = (object)unserialize($this->profile_cache);
   }
 
   public function beforeSave() 
   {
-    if(!empty($this->profile_cache))
-      $this->profile_cache = serialize((array)$this->profile_cache);
+    if(!empty($this->_profileCache))
+      $this->profile_cache = serialize((array)$this->_profileCache);
 
     return parent::beforeSave();
   }
@@ -230,8 +236,11 @@ class UserOAuth extends CActiveRecord
    */
   public function logout()
   {
-    $this->_adapter->logout();
-    $this->unsetAttributes(); 
+    if(!empty($this->_adapter))
+    {
+      $this->_adapter->logout();
+      $this->unsetAttributes(); 
+    }
   }
 
   /**
@@ -242,7 +251,7 @@ class UserOAuth extends CActiveRecord
   {
     $profile = $this->adapter->getUserProfile();
     //caching profile
-    $this->profile_cache = $profile;
+    $this->_profileCache = $profile;
 
     return $profile;
   }
@@ -276,13 +285,13 @@ class UserOAuth extends CActiveRecord
    */
   public function getProfileCache()
   {
-    if(empty($this->profile_cache))
+    if(empty($this->_profileCache))
     {
-      $this->profile_cache = $this->profile;
+      $this->getProfile();
       $this->save();
     }
 
-    return $this->profile_cache;
+    return $this->_profileCache;
   }
 
   /**
@@ -307,7 +316,7 @@ class UserOAuth extends CActiveRecord
   /**
    * Runs DB updates on the fly
    */
-  public function updateDb($model)
+  protected function updateDb($model)
   {
     $updates = array();
     // the try statement to correct my stupid column names in v1.0.1 of hoauth
