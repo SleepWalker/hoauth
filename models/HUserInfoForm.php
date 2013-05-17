@@ -89,19 +89,16 @@ class HUserInfoForm extends CFormModel {
     if(HOAuthAction::$useYiiUser)
     {
       $user = User::model()->notsafe()->findByAttributes(array('email'=>$this->email));
-      if(Yii::app()->getModule('user')->encrypting($this->password)!==$user->password)
-        $this->addError('password', HOAuthAction::t('Sorry, but password is incorrect'));
-      else
-        // setting up the current model, to use it later in HOAuthAction
-        $this->model = $user;
+      $valid = Yii::app()->getModule('user')->encrypting($this->password) === $user->password;
     }else{
       $user = $this->model->findByEmail($this->email);
-      if($this->verifyPassword($this->password))
-        $this->addError('password', HOAuthAction::t('Sorry, but password is incorrect'));
-      else
-        // setting up the current model, to use it later in HOAuthAction
-        $this->model = $user;      
+      $valid = $user->verifyPassword($this->password);
     }
+    if($valid)
+      // setting up the current model, to use it later in HOAuthAction
+      $this->model = $user;      
+    else
+      $this->addError('password', HOAuthAction::t('Sorry, but password is incorrect'));
   }
 
   /**
@@ -123,6 +120,7 @@ class HUserInfoForm extends CFormModel {
     if(!$this->_form)
     {
       $this->_form = new CForm(array(
+        'id' => strtolower(__CLASS__),
         'elements' => array(
           '<div class="form">',
           $this->header,
@@ -176,13 +174,19 @@ class HUserInfoForm extends CFormModel {
    */
   public function validateUser()
   {
+    // beginning from valid models, without any errors
+    $this->clearErrors();
+    $this->model->clearErrors();
+    if(!$this->isFormValid)
+      return false;
+      
     $user = $this->model;
     $emailAtt = $this->emailAtt;
     $nameAtt = $this->nameAtt;
-    if(!$this->isFormValid)
-      return false;
 
     $validators = array();
+    
+    // initilizing properties of user model
     if($nameAtt)
     {
       $user->$nameAtt = $this->username;
@@ -193,7 +197,10 @@ class HUserInfoForm extends CFormModel {
     {
       $user->$emailAtt = $this->email;
       $attributes[] = $emailAtt;
-      $validators = array_merge($validators, $user->getValidators($emailAtt));
+      foreach ($user->getValidators($emailAtt) as $validator)
+        // it can be, that one validator is used for both atts
+        if (!in_array($validator, $validators, true))
+            $validators[] = $validator;
     }
 
     foreach($validators as $validator)
