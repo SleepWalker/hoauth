@@ -54,6 +54,7 @@ class UserOAuth extends CActiveRecord
     catch(CDbException $e)
     {
       self::createDbTable();
+      Yii::app()->controller->refresh();
     }
 	}
 
@@ -310,7 +311,6 @@ class UserOAuth extends CActiveRecord
     $sql = file_get_contents(dirname(__FILE__).'/user_oauth.sql');
     $sql = strtr($sql, array('{{user_oauth}}' => Yii::app()->db->tablePrefix . 'user_oauth'));
     Yii::app()->db->createCommand($sql)->execute();
-    Yii::app()->controller->refresh();
   }
 
   /**
