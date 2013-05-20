@@ -203,6 +203,7 @@ class HUserInfoForm extends CFormModel {
             $validators[] = $validator;
     }
 
+    $ignored = array();
     foreach($validators as $validator)
     {
       foreach($attributes as $attribute)
@@ -282,7 +283,7 @@ class HUserInfoForm extends CFormModel {
           UserModule::sendMail($this->model->email,UserModule::t("You registered on {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("To activate your account, please go to {activation_url}",array('{activation_url}'=>$activation_url)));
         }
       }else{
-        if(!method_exists($this->model, 'sendActivationMail'))
+        if(method_exists($this->model, 'sendActivationMail'))
           $this->model->sendActivationMail();
       }
     }

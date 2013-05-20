@@ -2,6 +2,7 @@ The new one
 -----------
 - yii-user: we display `username` field only if it is required by the `User` model, so you can disable `username` field in `yii-user`.
 - fixed bug when after saving profileCache returned in serialized form
+- removed some NOTICE erros and fixed one stupid big with email sending callback (thanks to Komannder)
 
 Version 1.2.2
 -------------

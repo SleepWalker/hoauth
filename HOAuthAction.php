@@ -189,7 +189,7 @@ class HOAuthAction extends CAction
               $user = call_user_func(array($this->model, 'model'))->findByEmail($userProfile->emailVerified);
           }
 
-          if(!$user)
+          if(!isset($user))
           {
             if($this->useYiiUser)
             {
