@@ -1,8 +1,9 @@
 hoauth
 ======
 
-* hoauth extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net/) in Yii. (facebook, google, twitter, vkontakte and much more).
+* `hoauth` extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net/) in Yii. (facebook, google, twitter, vkontakte and much more).
 * Automatically finds and supports `yii-user` module ([instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)).
+* supports prefixed tables
 
 Requirements
 ------------
@@ -25,19 +26,33 @@ Available social networks
 
 Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html). And how to configure them [here](http://hybridauth.sourceforge.net/userguide.html) at the bottom of the page.
 
+Available translations
+----------------------
+* English
+* German
+* Russian
+* Spanish (Thanks to Komannder)
+
 A little about how it's woks
 ----------------------------
 
+The users of `yii-user` extension can skip this section, because `hoauth` will do all the stuff automatically.
 This extension authenticates and if it's need creates new user. When user was registered "locally" (so he has login (email) and password), then he can also log in with it's social account (extension checks if user with provided email exists in db, when yes, the he will be logged in and it is no matter how had he registered earlier - locally or not). After the user logged in he will be redirected to `Yii::app()->user->returnUrl`.
 
-In future releases, when it will be needed I can implement "classical algorithm": either local authorization or social authorization.
+This extension requires `UserIdentity` class, but doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When social network didn't give us user's email, the **hoauth** will ask user for email, when email exists in our db, the password will be asked too. At the end we bind provided by social network unique user identifier to user id for future sign in. [Example of UserIdentity class](https://github.com/SleepWalker/hoauth/wiki/UserIdentity-class-example).
 
-**NOTE:** this extension requires `UserIdentity` class. It doesn't use `authenticate()` method of `UserIdentity` class. Class constructor called with parameters `new UserIdentity($mail, null)` and than called `CWebUser::login()` method (while authentication work did for us social network). When social network didn't give us user's email, the **hoauth** will ask user for email, when email exists in our db, the password will be asked too. At the end we bind provided by social network unique user identifier to user id for future sign in.
+If you need to perform some access check for user, you can use `hoauthCheckAccess($user)` callback (simply create new method in controller where you added `HOAuthAction`). This method will be called with one input argument - *User model* of the user being authorized. This method should return integer values (`accessCode`) depending on the scenario needed:
+* 0 - user shouldn't get access
+* 1 - user may login
+* 2 - user may login, but not now (e.g. the email should be verified and activated)
+You can also not only return the `accessCode`, but also render the page with error or any information you need.
 
-**NOTE 2:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
+**NOTE:** This extension will also automatically create `user_oauth` table in your database. About it see "`UserOAuth` model" section.
 
 Installation and Usage
 ----------------------
+
+* [instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)
 
 **1\.** Simply copy the files in your `extensions` directory (or in any other directory you want).
 
@@ -143,6 +158,7 @@ $userOAuth = UserOAuth::model()->findUser(5, "Google"); // find all authorizatio
 $profile = $userOAuth->profile;
 echo "Your email is {$profile->email} and social network - {$userOAuth->provider}<br />";
 ```
+You can also use `UserOAuth::profileCache` property to access cached copy of the profile, without making any request to the social network.
 About how to use HybridAuth object you can read [here](http://hybridauth.sourceforge.net/userguide.html).
 
 Sources
