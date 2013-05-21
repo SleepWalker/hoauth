@@ -260,18 +260,33 @@ class HOAuthAction extends CAction
         }
 
         // checking if current user is not banned or anything else
-        $this->yiiUserCheckAccess($user);
+        // $accessCode == 0 - user shouldn't get access
+        // $accessCode == 1 - user may login
+        // $accessCode == 2 - user may login, but not now (e.g. the email should be verified and activated)
+        if($this->useYiiUser)
+          $accessCode = $this->yiiUserCheckAccess($user);
+        elseif(method_exists(Yii::app()->controller, 'hoauthCheckAccess'))
+          $accessCode = Yii::app()->controller->hoauthCheckAccess($user);
+
+        if(!$accessCode)
+          Yii::app()->end();
 
         // sign user in
-        $identity = $this->useYiiUser
-          ? new DummyUserIdentity($user->primaryKey, $user->email)
-          : new UserIdentity($user->email, null);
+        if($accessCode === 1)
+        {
+          $identity = $this->useYiiUser
+            ? new DummyUserIdentity($user->primaryKey, $user->email)
+            : new UserIdentity($user->email, null);
 
-        if(!Yii::app()->user->login($identity,$this->duration))
-          throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+          if(!Yii::app()->user->login($identity,$this->duration))
+            throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+        }
 
         if(!$oAuth->bindTo($user->primaryKey))
           throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
+
+        if($accessCode === 2)
+          Yii::app()->end(); // stoping skript to let checkAccess() function render new content
       }
     }
     catch( Exception $e ){
@@ -351,15 +366,21 @@ class HOAuthAction extends CAction
    */
   protected function yiiUserCheckAccess($user)
   {
-    if(!$this->useYiiUser)
-      return false;
-
     if($user->status==0&&Yii::app()->getModule('user')->loginNotActiv==false)
+    {
       $error = UserIdentity::ERROR_STATUS_NOTACTIV;
+      $return = 2;
+    }
     else if($user->status==-1)
+    {
       $error = UserIdentity::ERROR_STATUS_BAN;
+      $return = 0;
+    }
     else 
+    {
       $error = UserIdentity::ERROR_NONE;
+      $return = 1;
+    }
 
     if($error)
     {
@@ -367,8 +388,9 @@ class HOAuthAction extends CAction
         'errorCode' => $error,
         'user' => $user,
       ));
-      Yii::app()->end();
     }
+
+    return $return;
   }
 
   public function getUseYiiUser()
