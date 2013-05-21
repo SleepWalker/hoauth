@@ -3,7 +3,7 @@
 /**
  * Simple DummyUserIdentity class to handle authentication in `yii-user` module
  *
- * @version 1.2.2
+ * @version 1.2.3
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
