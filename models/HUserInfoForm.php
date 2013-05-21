@@ -278,11 +278,14 @@ class HUserInfoForm extends CFormModel {
 
         // why not to put this code not in controller, but in the User model of `yii-user` module?
         // for now I can only copy-paste this code from controller...
-        if (Yii::app()->getModule('user')->sendActivationMail) {
+        if (Yii::app()->getModule('user')->sendActivationMail) 
+        {
           $activation_url = Yii::app()->createAbsoluteUrl('/user/activation/activation',array("activkey" => $this->model->activkey, "email" => $this->model->email));
           UserModule::sendMail($this->model->email,UserModule::t("You registered on {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("To activate your account, please go to {activation_url}",array('{activation_url}'=>$activation_url)));
         }
-      }else{
+      }
+      else
+      {
         if(method_exists($this->model, 'sendActivationMail'))
           $this->model->sendActivationMail();
       }
