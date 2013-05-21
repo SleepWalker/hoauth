@@ -4,6 +4,7 @@ The new one
 - fixed bug when after saving profileCache returned in serialized form
 - removed some NOTICE erros and fixed one stupid big with email sending callback (thanks to Komannder)
 - fixed bug with imposibility of login with twitter (and other similar SN) despite successful email activation + added callback hoauthCheckAccess() for non `yii-user` ext using
+- added Spanish, German and Russian translations (thanks to Komannder and me)
 
 Version 1.2.2
 -------------
