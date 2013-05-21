@@ -238,7 +238,7 @@ class HUserInfoForm extends CFormModel {
           if($index !== false)
           {
             if(strpos($this->scenario, '_pass') === false || empty($this->password))
-              $errors[$attribute][$index] = HOAuthAction::t("This $attribute is taken by another user. If this is your account, enter password in field below or change $attribute and leave password blank.");
+              $errors[$attribute][$index] = HOAuthAction::t("This {attribute} is taken by another user. If this is your account, enter password in field below or change {attribute} and leave password blank.", array('{attribute}'=>$this->getAttributeLabel($attribute)));
             else
               // when we have scenario with '_pass' and we are here, than user entered valid password, so we simply unsetting errors from uniqness check
               unset($errors[$attribute][$index]);
@@ -274,7 +274,7 @@ class HUserInfoForm extends CFormModel {
       {
         $this->model->superuser = 0;
         $this->model->status=((Yii::app()->controller->module->activeAfterRegister)?User::STATUS_ACTIVE:User::STATUS_NOACTIVE);
-         $this->model->activkey=UserModule::encrypting(microtime().$this->model->email);
+        $this->model->activkey=UserModule::encrypting(microtime().$this->model->email);
 
         // why not to put this code not in controller, but in the User model of `yii-user` module?
         // for now I can only copy-paste this code from controller...
