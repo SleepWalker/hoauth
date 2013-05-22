@@ -300,6 +300,7 @@ class HUserInfoForm extends CFormModel {
    */
   public function getHeader()
   {
+    $header = '';
     switch($this->scenario)
     {
     case 'both':

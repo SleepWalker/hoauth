@@ -96,51 +96,56 @@ class HOAuthAction extends CAction
 
   public function run()
   {
-    $path = dirname(__FILE__);
-    // checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
-    if($this->useYiiUser || file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php'))
-    {
-      $this->useYiiUser = true;
-      // settung up yii-user's user model
-      Yii::import('application.modules.user.models.*');
-      Yii::import(self::ALIAS . '.DummyUserIdentity');
-
-      // prepering attributes array for `yii-user` module
-      if(!is_array($this->attributes))
-        $this->attributes = array();
-
-      $this->attributes = CMap::mergeArray($this->attributes, array(
-        'email' => 'email',
-        'status' => User::STATUS_ACTIVE,
-      ));
-
-      $this->usernameAttribute = 'username';
-      $this->_emailAttribute = 'email';
-    }else{
-      Yii::import($this->model, true);
-      $this->model = substr($this->model, strrpos($this->model, '.'));
-
-      if(!method_exists($this->model, 'findByEmail'))
-        throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
-
-      $this->_emailAttribute = array_search('email', $this->attributes);
-    }
-
-    if(!isset($this->attributes) || !is_array($this->attributes) || !count($this->attributes))
-      throw new CException('You must specify the model attributes for ' . __CLASS__);
-
-    if(!in_array('email', $this->attributes))
-      throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
 
     // openId login
     if($this->enabled)
     {
+      $path = dirname(__FILE__);
+      // checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
+      if($this->useYiiUser || file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php'))
+      {
+        $this->useYiiUser = true;
+        // settung up yii-user's user model
+        Yii::import('application.modules.user.models.*');
+        Yii::import(self::ALIAS . '.DummyUserIdentity');
+
+        // prepering attributes array for `yii-user` module
+        if(!is_array($this->attributes))
+          $this->attributes = array();
+
+        $this->attributes = CMap::mergeArray($this->attributes, array(
+          'email' => 'email',
+          'status' => User::STATUS_ACTIVE,
+        ));
+
+        $this->usernameAttribute = 'username';
+        $this->_emailAttribute = 'email';
+      }
+      else
+      {
+        Yii::import($this->model, true);
+        $this->model = substr($this->model, strrpos($this->model, '.'));
+
+        if(!method_exists($this->model, 'findByEmail'))
+          throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
+
+        $this->_emailAttribute = array_search('email', $this->attributes);
+      }
+
+      if(!isset($this->attributes) || !is_array($this->attributes) || !count($this->attributes))
+        throw new CException('You must specify the model attributes for ' . __CLASS__);
+
+      if(!in_array('email', $this->attributes))
+        throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
+
       if(isset($_GET['provider']))
       {
         Yii::import(self::ALIAS . '.models.UserOAuth');
         Yii::import(self::ALIAS . '.models.HUserInfoForm');
         $this->oAuth($_GET['provider']);
-      }else{
+      }
+      else
+      {
         require($path.'/hybridauth/index.php');
         Yii::app()->end();
       }
@@ -150,7 +155,8 @@ class HOAuthAction extends CAction
   }
 
   /**
-   * Initiates authorithation with specified $provider and then authenticates the user, when all goes fine
+   * Initiates authorithation with specified $provider and 
+   * then authenticates the user, when all goes fine
    * 
    * @param mixed $provider provider name for HybridAuth
    * @access protected
@@ -163,11 +169,14 @@ class HOAuthAction extends CAction
       $oAuth = UserOAuth::model()->authenticate( $provider );
       $userProfile = $oAuth->profile;
 
-      // If we already have a user logged in, associate the authenticated provider with the logged-in user
-      if(!Yii::app()->user->isGuest) {
+      // If we already have a user logged in, associate the authenticated 
+      // provider with the logged-in user
+      if(!Yii::app()->user->isGuest) 
+      {
         $oAuth->bindTo(Yii::app()->user->id);
       }
-      else {
+      else 
+      {
         if($oAuth->isBond)
         {
           // this social network account is bond to existing local account
@@ -263,6 +272,7 @@ class HOAuthAction extends CAction
         // $accessCode == 0 - user shouldn't get access
         // $accessCode == 1 - user may login
         // $accessCode == 2 - user may login, but not now (e.g. the email should be verified and activated)
+        $accessCode = 1;
         if($this->useYiiUser)
           $accessCode = $this->yiiUserCheckAccess($user);
         elseif(method_exists(Yii::app()->controller, 'hoauthCheckAccess'))
