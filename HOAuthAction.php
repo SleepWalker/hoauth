@@ -297,6 +297,11 @@ class HOAuthAction extends CAction
 
         if($accessCode === 2)
           Yii::app()->end(); // stoping skript to let checkAccess() function render new content
+
+        // user was succesfully logged in
+        // firing callback
+        if(method_exists($this->controller, 'hoauthAfterLogin'))
+          $this->controller->hoauthAfterLogin($user);
       }
     }
     catch( Exception $e ){

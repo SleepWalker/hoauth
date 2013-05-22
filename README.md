@@ -140,6 +140,17 @@ Additional properties for `HOAuthAction`
 * `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
 * `usernameAttribute` - you can specify username attribute, when it must be unique (like in `yii-user` extension), that hoauth will try to validate it's uniqueness.
 
+Callbacks
+---------
+To make you able to customize the behavior of `hoauth`, it is provide some useful callbacks. Here the list of them:
+* Controller::hoauthCheckAccess($user)
+* Controller::hoauthAfterLogin($user)
+* User::findByEmail($email
+* User::verifyPassword($password)
+* User::sendActivationMail())
+
+[More about callbacks](https://github.com/SleepWalker/hoauth/wiki/Callbacks)
+
 `UserOAuth` model
 -----------------
 
