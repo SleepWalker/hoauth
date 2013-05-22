@@ -273,10 +273,10 @@ class HOAuthAction extends CAction
         // $accessCode == 1 - user may login
         // $accessCode == 2 - user may login, but not now (e.g. the email should be verified and activated)
         $accessCode = 1;
-        if($this->useYiiUser)
+        if(method_exists($this->controller, 'hoauthCheckAccess'))
+          $accessCode = $this->controller->hoauthCheckAccess($user);
+        elseif($this->useYiiUser)
           $accessCode = $this->yiiUserCheckAccess($user);
-        elseif(method_exists(Yii::app()->controller, 'hoauthCheckAccess'))
-          $accessCode = Yii::app()->controller->hoauthCheckAccess($user);
 
         if(!$accessCode)
           Yii::app()->end();
@@ -374,7 +374,7 @@ class HOAuthAction extends CAction
   /**
    * Checks wheter the $user can be logged in
    */
-  protected function yiiUserCheckAccess($user)
+  public function yiiUserCheckAccess($user, $render = true)
   {
     if($user->status==0&&Yii::app()->getModule('user')->loginNotActiv==false)
     {
@@ -392,7 +392,7 @@ class HOAuthAction extends CAction
       $return = 1;
     }
 
-    if($error)
+    if($error && $render)
     {
       $this->controller->render(self::ALIAS.'.views.yiiUserError', array(
         'errorCode' => $error,
