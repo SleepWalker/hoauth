@@ -6,6 +6,7 @@ Version 1.2.3
 - fixed bug with imposibility of login with twitter (and other similar SN) despite successful email activation
 - added two callbacks: hoauthCheckAccess() and hoauthAfterLogin(). Details at https://github.com/SleepWalker/hoauth/wiki/Callbacks.
 - added Spanish, German and Russian translations (thanks to Komannder and me)
+- Security improvement: if user try to login with email of existing local account, that is not bond to current social network, he will be asked for password to confirm binding.
 
 Version 1.2.2
 -------------

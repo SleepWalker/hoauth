@@ -32,7 +32,7 @@ class HUserInfoForm extends CFormModel {
   /**
    * @var CActiveRecord $model the model of the User
    */
-  public $model;
+  protected $_model;
 
   /**
    * @var string $nameAtt name of the username attribute from $model
@@ -47,9 +47,9 @@ class HUserInfoForm extends CFormModel {
 	public function rules()
 	{
 		return array(
-			array('username', 'required', 'on' =>'username, username_pass, both, both_pass'),
-			array('email', 'required', 'on' =>'email, email_pass, both, both_pass'),
-      array('email', 'email', 'on' =>'email, email_pass, both, both_pass'),
+			array('username', 'required', 'on' =>'username, both'), //, username_pass, both, both_pass'),
+			array('email', 'required', 'on' =>'email, email_pass, both, both_pass, username_pass'),
+      array('email', 'email', 'on' =>'email, email_pass, both, both_pass, username_pass'),
       array('password', 'validatePassword', 'on' => 'email_pass, username_pass, both_pass'),
       array('password', 'unsafe', 'on' => 'email, username, both'),
 		);
@@ -60,12 +60,32 @@ class HUserInfoForm extends CFormModel {
    * 
    * @access public
    */
-  public function __construct($scenario, $model, $emailAtt, $nameAtt)
+  public function __construct($model, $emailAtt, $nameAtt = null, $scenario = 'both')
   {
-    parent::__construct($scenario);
+    if(empty($emailAtt))
+      throw new CException('$emailAtt can not be empty! Please specify email attribute name.');
+
+    $this->email = $model->$emailAtt;
+
+    if(empty($nameAtt))
+      $scenario = 'email';
+    else
+      $this->username = $model->$nameAtt;
+
+    // correcting scenarios, if some of fields is not empty
+    if ($this->scenario == 'both')
+    {
+      if(!empty($this->email))
+        $this->scenario = 'username';
+      if(!empty($this->username))
+        $this->scenario = 'email';
+    }
+    
     $this->nameAtt = $nameAtt;
     $this->emailAtt = $emailAtt;
-    $this->model = $model;
+    $this->_model = $model;
+
+    parent::__construct($scenario);
   }
 
 	public function attributeLabels()
@@ -91,12 +111,13 @@ class HUserInfoForm extends CFormModel {
       $user = User::model()->notsafe()->findByAttributes(array('email'=>$this->email));
       $valid = Yii::app()->getModule('user')->encrypting($this->password) === $user->password;
     }else{
-      $user = $this->model->findByEmail($this->email);
+      $user = $this->_model->findByEmail($this->email);
       $valid = $user->verifyPassword($this->password);
     }
+
     if($valid)
       // setting up the current model, to use it later in HOAuthAction
-      $this->model = $user;      
+      $this->_model = $user;      
     else
       $this->addError('password', HOAuthAction::t('Sorry, but password is incorrect'));
   }
@@ -112,55 +133,22 @@ class HUserInfoForm extends CFormModel {
   }
 
   /**
-   * @access public
-   * @return CForm instance
-   */
-  public function getForm()
-  {
-    if(!$this->_form)
-    {
-      $this->_form = new CForm(array(
-        'id' => strtolower(__CLASS__),
-        'elements' => array(
-          '<div class="form">',
-          $this->header,
-          'username' => array(
-            'type' => 'text',
-          ),
-          'email' => array(
-            'type' => 'text',
-          ),
-          'password' => array(
-            'type' => 'password',
-          ),
-        ),
-        'buttons'=>array(
-          'submit'=>array(
-            'type'=>'submit',
-            'label'=>HOAuthAction::t('Submit'),
-          ),
-          '</div>',
-        ),
-        'activeForm'=>array(
-          'id'=> strtolower(__CLASS__) . '-form',
-          'enableAjaxValidation'=>false,
-          'enableClientValidation'=>true,
-          'clientOptions' => array(
-            'validateOnSubmit' => true,
-            'validateOnChange' => true,
-          ),
-        ),
-      ), $this);
-    }
-    return $this->_form;
-  }
-
-  /**
    * Validate shortcut for CForm class instance
    */
   public function getIsFormValid()
   {
-    return $this->form->submitted('submit') && $this->form->validate();
+    if($this->form->submitted('submit'))
+      return $this->form->validate();
+
+    // account confiramtion scenario, when social network 
+    // returned email of existing local account
+    if(!$this->_model->isNewRecord)
+    {
+      $this->addError('email', $this->confirmStr('email'));
+      $this->scenario = 'email_pass';
+      return false;
+    }
+    return $this->validate();
   }
 
   /**
@@ -174,13 +162,14 @@ class HUserInfoForm extends CFormModel {
    */
   public function validateUser()
   {
-    // beginning from valid models, without any errors
-    $this->clearErrors();
-    $this->model->clearErrors();
     if(!$this->isFormValid)
       return false;
+
+    // beginning from valid models, without any errors
+    $this->clearErrors();
+    $this->_model->clearErrors();
       
-    $user = $this->model;
+    $user = $this->_model;
     $emailAtt = $this->emailAtt;
     $nameAtt = $this->nameAtt;
 
@@ -238,7 +227,7 @@ class HUserInfoForm extends CFormModel {
           if($index !== false)
           {
             if(strpos($this->scenario, '_pass') === false || empty($this->password))
-              $errors[$attribute][$index] = HOAuthAction::t("This {attribute} is taken by another user. If this is your account, enter password in field below or change {attribute} and leave password blank.", array('{attribute}'=>$this->getAttributeLabel($attribute)));
+              $errors[$attribute][$index] = $this->confirmStr($attribute);
             else
               // when we have scenario with '_pass' and we are here, than user entered valid password, so we simply unsetting errors from uniqness check
               unset($errors[$attribute][$index]);
@@ -255,41 +244,90 @@ class HUserInfoForm extends CFormModel {
   }
 
   /**
+   * @return error string for account confirmation
+   */
+  public function confirmStr($attributeName)
+  {
+    return HOAuthAction::t("This {attribute} is taken by another user. If this is your account, enter password in field below or change {attribute} and leave password blank.", array('{attribute}'=>$this->getAttributeLabel($attributeName)));
+  }
+
+  /**
    * Transfers collected values to the {@link HUserInfoForm::model}
    * 
    * @access public
    * @return void
    */
-  public function sync()
+  public function getValidUserModel()
   {
+    if($this->hasErrors())
+      return null;
+
     // syncing only when we have a new model
-    if($this->model->isNewRecord && !$this->hasErrors() && strpos($this->scenario, '_pass') === false)
+    if($this->_model->isNewRecord && strpos($this->scenario, '_pass') === false)
     {
-      $this->model->setAttributes(array(
+      $this->_model->setAttributes(array(
         $this->emailAtt => $this->email,
         $this->nameAtt => $this->username,
       ), false);
 
       if(HOAuthAction::$useYiiUser)
       {
-        $this->model->superuser = 0;
-        $this->model->status=((Yii::app()->controller->module->activeAfterRegister)?User::STATUS_ACTIVE:User::STATUS_NOACTIVE);
-        $this->model->activkey=UserModule::encrypting(microtime().$this->model->email);
-
-        // why not to put this code not in controller, but in the User model of `yii-user` module?
-        // for now I can only copy-paste this code from controller...
-        if (Yii::app()->getModule('user')->sendActivationMail) 
-        {
-          $activation_url = Yii::app()->createAbsoluteUrl('/user/activation/activation',array("activkey" => $this->model->activkey, "email" => $this->model->email));
-          UserModule::sendMail($this->model->email,UserModule::t("You registered on {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("To activate your account, please go to {activation_url}",array('{activation_url}'=>$activation_url)));
-        }
-      }
-      else
-      {
-        if(method_exists($this->model, 'sendActivationMail'))
-          $this->model->sendActivationMail();
+        $this->_model->superuser = 0;
+        $this->_model->status= (Yii::app()->getModule('user')->activeAfterRegister) ? User::STATUS_ACTIVE : User::STATUS_NOACTIVE;
+        $this->_model->activkey=UserModule::encrypting(microtime().$this->_model->email);
       }
     }
+
+    return $this->model;
+  }
+
+  /**
+   * @access public
+   * @return CForm instance
+   */
+  public function getForm()
+  {
+    if(!$this->_form)
+    {
+      $this->_form = new CForm(array(
+        'id' => strtolower(__CLASS__),
+        'elements' => array(
+          '<div class="form">',
+          $this->header,
+          'username' => array(
+            'type' => 'text',
+          ),
+          'email' => array(
+            'type' => 'text',
+          ),
+          'password' => array(
+            'type' => 'password',
+          ),
+        ),
+        'buttons'=>array(
+          'submit'=>array(
+            'type'=>'submit',
+            'label'=>HOAuthAction::t('Submit'),
+          ),
+          '</div>',
+        ),
+        'activeForm'=>array(
+          'id'=> strtolower(__CLASS__) . '-form',
+          'enableAjaxValidation'=>false,
+          'enableClientValidation'=>true,
+          'clientOptions' => array(
+            'validateOnSubmit' => true,
+            'validateOnChange' => true,
+          ),
+        ),
+      ), $this);
+    }
+    return $this->_form;
+  }
+
+  public function getModel()
+  {
+    return $this->_model;
   }
 
   /**

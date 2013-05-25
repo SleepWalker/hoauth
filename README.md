@@ -139,15 +139,16 @@ Additional properties for `HOAuthAction`
 * `loginAction` - name of a local login action (should be in the same controller as `oauth` action). (default: 'actionLogin')
 * `duration` - 'remember me' duration in ms. (default: 2592000 //30days)
 * `usernameAttribute` - you can specify username attribute, when it must be unique (like in `yii-user` extension), that hoauth will try to validate it's uniqueness.
+* `alwaysCheckPass` - flag to control password checking for the scenario, when when social network returned email of existing local account. If set to `false` user will be automatically logged in without confirming account with password. (default: `true`)
 
-Callbacks
----------
+Available Callbacks
+-------------------
 To make you able to customize the behavior of `hoauth`, it is provide some useful callbacks. Here the list of them:
-* Controller::hoauthCheckAccess($user)
-* Controller::hoauthAfterLogin($user)
-* User::findByEmail($email
-* User::verifyPassword($password)
-* User::sendActivationMail())
+* `Controller::hoauthCheckAccess($user)`
+* `Controller::hoauthAfterLogin($user)`
+* `User::findByEmail($email`
+* `User::verifyPassword($password)`
+* `User::sendActivationMail())`
 
 [More about callbacks](https://github.com/SleepWalker/hoauth/wiki/Callbacks)
 

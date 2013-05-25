@@ -38,7 +38,7 @@ class HOAuthAction extends CAction
   public $model = 'User';
 
   /**
-   * @var array $attributes attributes synchronisation array (user model attribute => oauth attribute). List of avaible profile attributes you can see at {@link http://hybridauth.sourceforge.net/userguide/Profile_Data_User_Profile.html "HybridAuth's Documentation"}.
+   * @var array $attributes attributes synchronization array (user model attribute => oauth attribute). List of available profile attributes you can see at {@link http://hybridauth.sourceforge.net/userguide/Profile_Data_User_Profile.html "HybridAuth's Documentation"}.
    *
    * Additional attributes:
    *    birthDate - The full date of birthday, eg. 1991-09-03
@@ -75,6 +75,13 @@ class HOAuthAction extends CAction
   public static $useYiiUser = false;
 
   /**
+   * @var boolean $alwaysCheckPass flag to control password checking for the scenario, 
+   *      when when social network returned email of existing local account. If set to
+   *      `false` user will be automatically logged in without confirming account with password
+   */
+  public $alwaysCheckPass = true;
+
+  /**
    * @var string $usernameAttribute you can specify the username attribute, when user must fill it
    */
   public $usernameAttribute = false;
@@ -85,7 +92,7 @@ class HOAuthAction extends CAction
   protected $_emailAttribute = false;
 
   /**
-   * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all avaible attributes in HybridAuth 2.0.11) + additional attributes (see $attributes)
+   * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all available attributes in HybridAuth 2.0.11) + additional attributes (see $attributes)
    */
   protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
 
@@ -105,16 +112,17 @@ class HOAuthAction extends CAction
       if($this->useYiiUser || file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php'))
       {
         $this->useYiiUser = true;
-        // settung up yii-user's user model
+        // setting up yii-user's user model
         Yii::import('application.modules.user.models.*');
         Yii::import(self::ALIAS . '.DummyUserIdentity');
 
-        // prepering attributes array for `yii-user` module
+        // preparing attributes array for `yii-user` module
         if(!is_array($this->attributes))
           $this->attributes = array();
 
         $this->attributes = CMap::mergeArray($this->attributes, array(
           'email' => 'email',
+          'username' => 'displayName',
           'status' => User::STATUS_ACTIVE,
         ));
 
@@ -155,7 +163,7 @@ class HOAuthAction extends CAction
   }
 
   /**
-   * Initiates authorithation with specified $provider and 
+   * Initiates authorization with specified $provider and 
    * then authenticates the user, when all goes fine
    * 
    * @param mixed $provider provider name for HybridAuth
@@ -199,73 +207,11 @@ class HOAuthAction extends CAction
           }
 
           if(!isset($user))
-          {
-            if($this->useYiiUser)
-            {
-              $profile = new Profile();
-              // enabling register mode
-              // old versions of yii
-              $profile->regMode = true;
-              // new version, when regMode is static property
-              $prop = new ReflectionProperty('Profile', 'regMode');
-              if($prop->isStatic())
-                Profile::$regMode = true;
-            }
-
             // registering a new user
             $user = new $this->model($this->scenario);
-            $this->populateModel($user, $userProfile);
 
-            // trying to fill email and username fields
-            if(empty($userProfile->emailVerified) || $user->isAttributeRequired($this->usernameAttribute) || !$user->validate())
-            {
-              // NOTE: we display `username` field only if it is required by the model
-              $scenario = empty($userProfile->emailVerified) && $this->usernameAttribute && $user->isAttributeRequired($this->usernameAttribute)
-                ? 'both' 
-                : (empty($userProfile->emailVerified)
-                ? 'email' : 'username');
-
-              $form = new HUserInfoForm($scenario, $user, $this->_emailAttribute, $this->usernameAttribute);
-
-              $form->setAttributes(array(
-                'email' => $userProfile->email,
-                'username' => $userProfile->displayName,
-              ), false);
-
-              if(!$form->validateUser())
-              {
-                $this->controller->render(self::ALIAS.'.views.form', array(
-                  'form' => $form,
-                ));
-                Yii::app()->end();
-              }
-
-              // updating attributes in $user model (if needed)
-              $form->sync();
-
-              if($form->model !== $user)
-                // user provided correct password for existing account
-                // so we using the model of that account
-                $user = $form->model;
-            }
-
-            // the model won't be new, if user provided email and password of existing account
-            if($user->isNewRecord) 
-            {
-              if(!$user->save())
-                throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
-
-              if($this->useYiiUser)
-              {
-                $profile->user_id = $user->primaryKey;
-                $profile->first_name = $userProfile->firstName;
-                $profile->last_name = $userProfile->lastName;
-
-                if(!$profile->save())
-                  throw new Exception("Error, while saving " . get_class($profile) . "  model:\n\n" . var_export($user->errors, true));
-              }
-            }
-          }
+          if($this->alwaysCheckPass || $user->isNewRecord)
+            $user = $this->processUser($user, $userProfile);
         }
 
         // checking if current user is not banned or anything else
@@ -296,10 +242,11 @@ class HOAuthAction extends CAction
           throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
 
         if($accessCode === 2)
-          Yii::app()->end(); // stoping skript to let checkAccess() function render new content
+          Yii::app()->end(); // stopping script to let checkAccess() function render new content
 
-        // user was succesfully logged in
+        // user was successfully logged in
         // firing callback
+        // TODO: we need to pass also $newUser variable here
         if(method_exists($this->controller, 'hoauthAfterLogin'))
           $this->controller->hoauthAfterLogin($user);
       }
@@ -309,7 +256,7 @@ class HOAuthAction extends CAction
       {
         $error = "";
 
-        // Display the recived error
+        // Display the received error
         switch( $e->getCode() ){ 
         case 0 : $error = "Unspecified error."; break;
         case 1 : $error = "Hybriauth configuration error."; break;
@@ -336,6 +283,97 @@ class HOAuthAction extends CAction
 
     $returnUrl = $this->useYiiUser ? Yii::app()->modules['user']['returnUrl'] : Yii::app()->user->returnUrl;
     Yii::app()->controller->redirect($returnUrl);
+  }
+  
+  /**
+   * Registers new user, collects username and email if needed
+   *
+   * @param CActiveRecord $user current user model
+   * @param object $userProfile social network's user profile object
+   * @access protected
+   */
+  protected function processUser($user, $userProfile)
+  {
+    if($this->useYiiUser)
+    {
+      $profile = new Profile();
+      // enabling register mode
+      // old versions of yii
+      $profile->regMode = true;
+      // new version, when regMode is static property
+      $prop = new ReflectionProperty('Profile', 'regMode');
+      if($prop->isStatic())
+        Profile::$regMode = true;
+    }
+
+    if($user->isNewRecord)
+      $this->populateModel($user, $userProfile);
+
+    // trying to fill email and username fields
+    // NOTE: we display `username` field in our form only if it is required by the model
+    if(!$user->isAttributeRequired($this->usernameAttribute))
+      $this->usernameAttribute = false;
+
+    $form = new HUserInfoForm($user, $this->_emailAttribute, $this->usernameAttribute);
+
+    if(!$form->validateUser())
+    {
+      $this->controller->render(self::ALIAS.'.views.form', array(
+        'form' => $form,
+      ));
+      Yii::app()->end();
+    }
+
+    // updating attributes in $user model (if needed)
+    $user = $form->validUserModel;
+
+    // the model won't be new, if user provided email and password of existing account
+    if($user->isNewRecord) 
+    {
+      if(!$user->save())
+        throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
+
+      // trying to send activation email
+      $this->sendActivationMail($user);
+
+      if($this->useYiiUser)
+      {
+        $profile->user_id = $user->primaryKey;
+        $profile->first_name = $userProfile->firstName;
+        $profile->last_name = $userProfile->lastName;
+
+        if(!$profile->save())
+          throw new Exception("Error, while saving " . get_class($profile) . "  model:\n\n" . var_export($user->errors, true));
+      }
+    }
+
+    return $user;
+  }
+
+  /**
+   * Sends email activation email, when it is needed  
+   * 
+   * @param CActiveRecord $user current user model
+   * @access protected
+   * @return void
+   */
+  protected function sendActivationMail($user)
+  {
+    if($this->useYiiUser)
+    {
+      // why not to put this code not in controller, but in the User model of `yii-user` module?
+      // for now I can only copy-paste this code from controller...
+      if (Yii::app()->getModule('user')->sendActivationMail) 
+      {
+        $activation_url = Yii::app()->createAbsoluteUrl('/user/activation/activation',array("activkey" => $user->activkey, "email" => $user->email));
+        UserModule::sendMail($user->email,UserModule::t("You registered on {site_name}",array('{site_name}'=>Yii::app()->name)),UserModule::t("To activate your account, please go to {activation_url}",array('{activation_url}'=>$activation_url)));
+      }
+    }
+    else
+    {
+      if(method_exists($user, 'sendActivationMail'))
+        $user->sendActivationMail();
+    }
   }
 
   /**
@@ -377,7 +415,10 @@ class HOAuthAction extends CAction
   }
 
   /**
-   * Checks wheter the $user can be logged in
+   * Checks whether the $user can be logged in
+   *
+   * @param CActiveRecord $user current `yii-user` user's model
+   * @param boolean $render flag that enables rendering
    */
   public function yiiUserCheckAccess($user, $render = true)
   {
