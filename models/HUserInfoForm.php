@@ -112,7 +112,12 @@ class HUserInfoForm extends CFormModel {
       $valid = Yii::app()->getModule('user')->encrypting($this->password) === $user->password;
     }else{
       $user = $this->_model->findByEmail($this->email);
-      $valid = $user->verifyPassword($this->password);
+      if(method_exists($this->_model, 'verifyPassword'))
+        $valid = $user->verifyPassword($this->password);
+      elseif(method_exists($this->_model, 'validatePassword'))
+        $valid = $user->validatePassword($this->password);
+      else
+        throw new CException('You need to implement verifyPassword($password) or validatePassword($password) method in order to let hoauth validate user password.');
     }
 
     if($valid)

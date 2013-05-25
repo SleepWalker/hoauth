@@ -120,7 +120,7 @@ class SiteController extends Controller
 ```
 
 **Optional:**
-**6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword($password)` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
+**6\.** When you planning to use social networks like **Twitter**, that returns no email from user profile, you should declare `verifyPassword($password)` or `validatePassword($password)` method in `User` model, that should take the password (not hash) and return `true` if it is valid.
 **7\.** You can also declare the `sendActivationMail()` method, that should mark the user account as inactive and send the mail for activation. This method, when it's exists will be used for social networks like **Twitter**, that give us no data about user's email (because we need to proof that user entered the right email).
 
 Available social profile fields
@@ -147,7 +147,7 @@ To make you able to customize the behavior of `hoauth`, it is provide some usefu
 * `Controller::hoauthCheckAccess($user)`
 * `Controller::hoauthAfterLogin($user)`
 * `User::findByEmail($email`
-* `User::verifyPassword($password)`
+* `User::verifyPassword($password)` or `User::validatePassword($password)`
 * `User::sendActivationMail())`
 
 [More about callbacks](https://github.com/SleepWalker/hoauth/wiki/Callbacks)

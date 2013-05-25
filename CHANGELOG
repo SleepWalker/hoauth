@@ -7,6 +7,7 @@ Version 1.2.3
 - added two callbacks: hoauthCheckAccess() and hoauthAfterLogin(). Details at https://github.com/SleepWalker/hoauth/wiki/Callbacks.
 - added Spanish, German and Russian translations (thanks to Komannder and me)
 - Security improvement: if user try to login with email of existing local account, that is not bond to current social network, he will be asked for password to confirm binding.
+- added support of validatePassword() callback - alias for verifyPassword()
 
 Version 1.2.2
 -------------
