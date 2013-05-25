@@ -185,6 +185,7 @@ class HOAuthAction extends CAction
       }
       else 
       {
+        $newUser = false;
         if($oAuth->isBond)
         {
           // this social network account is bond to existing local account
@@ -207,8 +208,11 @@ class HOAuthAction extends CAction
           }
 
           if(!isset($user))
+          {
             // registering a new user
             $user = new $this->model($this->scenario);
+            $newUser = true;
+          }
 
           if($this->alwaysCheckPass || $user->isNewRecord)
             $user = $this->processUser($user, $userProfile);
@@ -246,9 +250,8 @@ class HOAuthAction extends CAction
 
         // user was successfully logged in
         // firing callback
-        // TODO: we need to pass also $newUser variable here
         if(method_exists($this->controller, 'hoauthAfterLogin'))
-          $this->controller->hoauthAfterLogin($user);
+          $this->controller->hoauthAfterLogin($user, $newUser);
       }
     }
     catch( Exception $e ){
