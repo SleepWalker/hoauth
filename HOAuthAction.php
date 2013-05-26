@@ -245,13 +245,13 @@ class HOAuthAction extends CAction
         if(!$oAuth->bindTo($user->primaryKey))
           throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
 
-        if($accessCode === 2)
-          Yii::app()->end(); // stopping script to let checkAccess() function render new content
-
         // user was successfully logged in
         // firing callback
         if(method_exists($this->controller, 'hoauthAfterLogin'))
           $this->controller->hoauthAfterLogin($user, $newUser);
+
+        if($accessCode === 2)
+          Yii::app()->end(); // stopping script to let checkAccess() function render new content
       }
     }
     catch( Exception $e ){
