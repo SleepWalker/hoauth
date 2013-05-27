@@ -21,21 +21,24 @@ class HOAuth extends CWidget
    */
   public $route = false;
 
-  public function run()
+  public function init()
   {
     if(!$this->route)
       $this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
     
     require_once(dirname(__FILE__).'/../models/UserOAuth.php');
-    $config = UserOAuth::getConfig();
+    require_once(dirname(__FILE__).'/../HOAuthAction.php');
     $this->registerFiles();
+  }
+
+  public function run()
+  {
+    $config = UserOAuth::getConfig();
     foreach($config['providers'] as $provider => $settings)
       if($settings['enabled'])
         $this->render('link', array(
           'provider' => $provider,
         ));
-
-
   }
 
   protected function registerFiles()

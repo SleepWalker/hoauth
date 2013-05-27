@@ -16,4 +16,7 @@ return array (
 	'is banned!' => 'заблокирован!',
 	'Return to main page' => 'Вернуться на главную страницу',
 	'Return to login page' => 'Вернуться на страницу входа',
+
+  'Sign in with' => 'Войти через',
+  'Connect with' => 'Подключить ',
 );
