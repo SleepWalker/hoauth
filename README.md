@@ -7,7 +7,7 @@ hoauth
 
 Requirements
 ------------
-* Yii 1.1 or above. (I have tested it only in 1.1.13)
+* Yii 1.1.9 or above. (I have tested it only in 1.1.13)
 
 Available social networks
 -------------------------
