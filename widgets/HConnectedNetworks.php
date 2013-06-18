@@ -3,7 +3,7 @@
  * HConnectedNetworks shows the list with networks, that user connected to
  * 
  * @uses CWidget
- * @version 1.2.2
+ * @version 1.2.3
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
@@ -15,28 +15,29 @@ class HConnectedNetworks extends CWidget
 	public $tag = 'ul';
 
 	public function run()
-  {
+	{
 		require_once(dirname(__FILE__).'/../models/UserOAuth.php');
+		require_once(dirname(__FILE__).'/../HOAuthAction.php');
 
-    // provider delete action
-    if(Yii::app()->request->isPostRequest && isset($_GET['hoauthDelSN']))
-    {
-      ob_clean();
-      ob_clean();
-      $userNetwork = UserOAuth::model()->findUser(Yii::app()->user->id, $_GET['hoauthDelSN']);
-      if($userNetwork)
-      {
-        $userNetwork->delete();
-      }
-      Yii::app()->end();
-    }
+    	// provider delete action
+		if(Yii::app()->request->isPostRequest && isset($_GET['hoauthDelSN']))
+		{
+			ob_clean();
+			ob_clean();
+			$userNetwork = UserOAuth::model()->findUser(Yii::app()->user->id, $_GET['hoauthDelSN']);
+			if($userNetwork)
+			{
+				$userNetwork->delete();
+			}
+			Yii::app()->end();
+		}
 
 		$userNetworks = UserOAuth::model()->findUser(Yii::app()->user->id);
 		$sns = array();
 
 		foreach($userNetworks as $network)
 		{
-      $deleteUrl = '?hoauthDelSN='.$network->provider;
+			$deleteUrl = '?hoauthDelSN='.$network->provider;
 			try
 			{
 				array_push($sns, array('provider' => $network->provider, 'profileUrl' => $network->profileCache->profileURL, 'deleteUrl' => $deleteUrl));
@@ -49,6 +50,6 @@ class HConnectedNetworks extends CWidget
 
 		$this->render('networksList', array(
 			'sns' => $sns,
-		));
+			));
 	}
 }

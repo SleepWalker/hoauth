@@ -29,21 +29,21 @@
 require_once(dirname(__FILE__).'/HOAuth.php');
 class HOAuthActive extends HOAuth
 {
-  public $user = null;
+	public $user = null;
 
-  public function run()
-  {
-    if (!$this->user)
-      return;
+	public function run()
+	{
+		if (!$this->user)
+			return;
 
-    // find all authorizations from user with id=
-    $userOAuths = UserOAuth::model()->findUser($this->user->primaryKey); 
-    foreach($userOAuths as $userOAuth)
-    {
-      $this->render('link', array(
-        'provider' => $userOAuth->provider,
-      ));
-    }
+		// find all authorizations from user with id=
+		$userOAuths = UserOAuth::model()->findUser($this->user->primaryKey); 
+		foreach($userOAuths as $userOAuth)
+		{
+			$this->render('link', array(
+				'provider' => $userOAuth->provider,
+				));
+		}
 
-  }
+	}
 }
