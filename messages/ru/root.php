@@ -9,6 +9,8 @@ return array (
 	'Please specify your nickname and email to end with registration.' => 'Пожалуйста, укажите имя пользователя и email, что бы завершить регистрацию.',
 	'Please specify your nickname to end with registration.' => 'Пожалуйста, укажите имя пользователя, что бы завершить регистрацию.',
 	'Please specify your email to end with registration.' => 'Пожалуйста, укажите ваше имя email, что бы завершить регистрацию.',
+	'If you remove this social network account, you will you will not be able to login with it.\\n\\nDo you realy want to remove this account?' => 'Если вы удалите этот аккаунт, вы не сможете зайти с помощью него на сайт.\\n\\nВы действительно хотите удалить этот аккаунт?',
+	'Remove' => 'Удалить',
 	
 	
 	'Sorry, but your account' => 'Извините, но ваш аккаунт',

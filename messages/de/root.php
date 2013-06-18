@@ -9,6 +9,8 @@ return array (
 	'Please specify your nickname and email to end with registration.' => 'Bitte geben Sie Ihre E-Mail und Benutzername ein, um mit der Registrierung zu beenden.',
 	'Please specify your nickname to end with registration.' => 'Bitte geben Sie Ihre E-Mail ein, um mit der Registrierung zu beenden.',
 	'Please specify your email to end with registration.' => 'Bitte geben Sie Ihre Benutzername ein, um mit der Registrierung zu beenden.',
+	'If you remove this social network account, you will you will not be able to login with it.\\n\\nDo you realy want to remove this account?' => 'Falls Sie entfernen dieses Konto, wird es unmöglich mit dieses Konto einlogen.\\n\\nWollen Sie fortsetzen?',
+	'Remove' => 'Entfernen',
 	
 	'Sorry, but your account' => 'Verzeihung, aber Ihr Konto',
 	'must be activated! Check your email for details!' => 'noch nicht Aktiviert! Überprüfen Sie Ihre E-Mail für Details!',
