@@ -35,7 +35,7 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
 
 		// check for errors
 		if ( $error ){
-			throw new Exception( "Authentication failed! {$this->providerId} returned an error: $error", 5 );
+			throw new Exception( "Authentification failed! {$this->providerId} returned an error: $error", 5 );
 		}
 
 		// try to authenicate user
@@ -50,7 +50,7 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
 
 		// check if authenticated
 		if ( !property_exists($response,'user_id') || ! $this->api->access_token ){
-			throw new Exception( "Authentication failed! {$this->providerId} returned an invalid access token.", 5 );
+			throw new Exception( "Authentification failed! {$this->providerId} returned an invalid access token.", 5 );
 		}
 
 		// store tokens
@@ -82,7 +82,7 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
 
 
 		if (!isset( $response->response[0] ) || !isset( $response->response[0]->uid ) || isset( $response->error ) ){
-			throw new Exception( "User profile request failed! {$this->providerId} returned an invalid response.", 6 );
+			throw new Exception( "User profile request failed! {$this->providerId} returned an invalide response.", 6 );
 		}
 
 		$response = $response->response[0];
@@ -103,7 +103,7 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
 		}
 
 		if( property_exists($response,'bdate') ){
-			list($birthday_year, $birthday_month, $birthday_day) = explode( '.', $response->bdate );
+			list($birthday_day, $birthday_month, $birthday_year) = explode( '.', $response->bdate );
 
 			$this->user->profile->birthDay   = (int) $birthday_day;
 			$this->user->profile->birthMonth = (int) $birthday_month;
