@@ -16,7 +16,7 @@
  * HOAuthAction requires, that your user model implements findByEmail() method, that should return user model by its email.
  *
  * Avaible social networks: 
- *    OpenID, Google, Facebook, Twitter, Yahoo, MySpace, Windows Live, LinkedIn, Foufrsquare, AOL
+ *    OpenID, Google, Facebook, Twitter, Yahoo, MySpace, Windows Live, LinkedIn, Foursquare, AOL
  * Additional social networks can be found at: {@link http://hybridauth.sourceforge.net/download.html}
  *
  * Social Auth widget:
