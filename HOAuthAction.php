@@ -16,7 +16,7 @@
  * HOAuthAction requires, that your user model implements findByEmail() method, that should return user model by its email.
  *
  * Avaible social networks: 
- *    OpenID, Google, Facebook, Twitter, Yahoo, MySpace, Windows Live, LinkedIn, Foursquare, AOL
+ *    OpenID, Google, Facebook, Twitter, Yahoo, MySpace, Windows Live, LinkedIn, Foufrsquare, AOL
  * Additional social networks can be found at: {@link http://hybridauth.sourceforge.net/download.html}
  *
  * Social Auth widget:
@@ -342,8 +342,8 @@ class HOAuthAction extends CAction
 			if($this->useYiiUser)
 			{
 				$profile->user_id = $user->primaryKey;
-				$profile->first_name = $userProfile->firstName;
-				$profile->last_name = $userProfile->lastName;
+				$profile->firstname = $userProfile->firstName;
+				$profile->lastname = $userProfile->lastName;
 
 				if(!$profile->save())
 					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($user->errors, true));
