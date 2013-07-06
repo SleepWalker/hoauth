@@ -342,8 +342,17 @@ class HOAuthAction extends CAction
 			if($this->useYiiUser)
 			{
 				$profile->user_id = $user->primaryKey;
-				$profile->first_name = $userProfile->firstName;
-				$profile->last_name = $userProfile->lastName;
+        if($profile->hasAttribute('firstname'))
+        {
+          // we have new version of yii-user of about 06.2013
+          $profile->firstname = $userProfile->firstName;
+          $profile->lastname = $userProfile->lastName;
+        }
+        else
+        {
+          $profile->first_name = $userProfile->firstName;
+          $profile->last_name = $userProfile->lastName;
+        }
 
 				if(!$profile->save())
 					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($user->errors, true));
