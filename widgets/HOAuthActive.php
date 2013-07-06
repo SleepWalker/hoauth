@@ -4,11 +4,11 @@
  * that ARE CONNECTED in HybridAuth 
  * 
  * @uses CWidget
- * @version 1.2.3
+ * @version 1.2.4
  * @copyright Copyright &copy; 2013 Charles Kefuver
  * @author Charles Kefauer <ckefauver@ibacom.es> 
  * @modified from HOAuth by Sviatoslav Danylenko <dev@udf.su> 
- * @license PGPLv3 ({@link http://www.gnu.org/licenses/gpl-3.0.html})
+ * @license MIT ({@link http://opensource.org/licenses/MIT})
  * @link https://github.com/SleepWalker/hoauth
  */
 

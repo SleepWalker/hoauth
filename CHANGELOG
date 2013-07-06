@@ -1,7 +1,8 @@
-Version NEXT
+Version v1.2.4
 ------------
 - updated hybridauth lib
 - support of newer version of yii-user (06.2013)
+- moved to MIT license
 
 Version 1.2.3
 -----------
