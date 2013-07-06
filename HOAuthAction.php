@@ -344,7 +344,7 @@ class HOAuthAction extends CAction
 				$profile->user_id = $user->primaryKey;
         if($profile->hasAttribute('firstname'))
         {
-          // we have new version of yii-user of about 06.2013
+          // we have an older yii-user version or is used db dump from data directory
           $profile->firstname = $userProfile->firstName;
           $profile->lastname = $userProfile->lastName;
         }
