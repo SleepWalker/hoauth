@@ -54,7 +54,26 @@ Installation and Usage
 
 * [instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)
 
-**1\.** Simply copy the files in your `extensions` directory (or in any other directory you want).
+**1\.** Make `hoauth` directory in your `extensions` directory (or in any other directory you want) and copy the content files there.
+Directory structure example:
+```php
+/protected/
+   extesions/
+      hoauth/
+         hybridauth/
+         messages/
+         models/
+         views/
+         widgets/
+         .gitignore
+         CHANGELOG
+         DummyUserIdentity.php
+         HOAuthAction.php
+         HOAuthAdminAction.php
+         MIT-LICENSE.txt
+         README.md
+         UPGRADE.md
+```
 
 **2\.** Edit your controller source code (eg. `SiteController` class with `actionLogin()` method) to add new actions:
 ```php
@@ -116,7 +135,7 @@ class SiteController extends Controller
 
 **5\.** Add social login widget to your login page view (you can use `route` property, when you placing your widget not in the same module/controller as your `oauth` action):
 ```php
-<?php $this->widget('ext.hoauth.widget.HOAuth'); ?>
+<?php $this->widget('ext.hoauth.widgets.HOAuth'); ?>
 ```
 
 **Optional:**
