@@ -355,7 +355,7 @@ class HOAuthAction extends CAction
         }
 
 				if(!$profile->save())
-					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($user->errors, true));
+					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($profile->errors, true));
 			}
 		}
 
