@@ -216,14 +216,15 @@ class UserOAuth extends CActiveRecord
 			{
 				$error = "";
 				switch( $e->getCode() )
-				{ 
+				{
 					case 6 : //$error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
 					case 7 : //$error = "User not connected to the provider."; 
 					$this->logout();
 					return $this->authenticate($provider);
 					break;
 				}
-			}
+                throw $e;
+            }
 		}
 
 		return null;
