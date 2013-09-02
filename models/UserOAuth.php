@@ -109,7 +109,7 @@ class UserOAuth extends CActiveRecord
 			if(file_exists($oldConfig))
 			{
 				// TODO: delete this in next versions
-				if (is_writable($yiipath) && is_writable($oldConfig)) // trying to move old config to the new dir
+				if (is_writable($config) && is_writable($oldConfig)) // trying to move old config to the new dir
 				rename($oldConfig, $config);
 				else
 					$config = $oldConfig;
