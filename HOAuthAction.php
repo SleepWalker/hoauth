@@ -25,6 +25,10 @@
  *    )); ?>
  * uses a little modified Zocial CSS3 buttons: {@link https://github.com/samcollins/css-social-buttons/}
  */
+
+
+Yii::setPathOfAlias('hoauth', dirname(__FILE__));
+
 class HOAuthAction extends CAction
 {
 	/**
@@ -96,14 +100,8 @@ class HOAuthAction extends CAction
 	 */
 	protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
 
-	/**
-	 * @var ALIAS the alias of extension (you can change this, when you have put this extension in another dir)
-	 */
-	const ALIAS = 'ext.hoauth';
-
 	public function run()
-	{
-
+	{		
 		// openId login
 		if($this->enabled)
 		{
@@ -114,7 +112,7 @@ class HOAuthAction extends CAction
 				$this->useYiiUser = true;
 				// setting up yii-user's user model
 				Yii::import('application.modules.user.models.*');
-				Yii::import(self::ALIAS . '.DummyUserIdentity');
+				Yii::import('hoauth.DummyUserIdentity');
 
 				// preparing attributes array for `yii-user` module
 				if(!is_array($this->attributes))
@@ -148,8 +146,7 @@ class HOAuthAction extends CAction
 
 			if(isset($_GET['provider']))
 			{
-				Yii::import(self::ALIAS . '.models.UserOAuth');
-				Yii::import(self::ALIAS . '.models.HUserInfoForm');
+				Yii::import('hoauth.models.*');
 				$this->oAuth($_GET['provider']);
 			}
 			else
@@ -261,7 +258,7 @@ class HOAuthAction extends CAction
 
 				// Display the received error
 				switch( $e->getCode() ){ 
-					case 0 : $error = "Unspecified error."; break;
+					case 0 : $error = "Unspecified error."; throw $e; break;
 					case 1 : $error = "Hybriauth configuration error."; break;
 					case 2 : $error = "Provider not properly configured."; break;
 					case 3 : $error = "Unknown or disabled provider."; break;
@@ -321,7 +318,7 @@ class HOAuthAction extends CAction
 
 		if(!$form->validateUser())
 		{
-			$this->controller->render(self::ALIAS.'.views.form', array(
+			$this->controller->render('hoauth.views.form', array(
 				'form' => $form,
 				));
 			Yii::app()->end();
@@ -452,7 +449,7 @@ class HOAuthAction extends CAction
 
 		if($error && $render)
 		{
-			$this->controller->render(self::ALIAS.'.views.yiiUserError', array(
+			$this->controller->render('hoauth.views.yiiUserError', array(
 				'errorCode' => $error,
 				'user' => $user,
 				));
