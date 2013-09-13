@@ -1,4 +1,8 @@
-Version v1.2.4
+Version 1.2.5
+-------------
+- added an option to display only icons in social login widget (HOAuth::onlyIcons)
+
+Version 1.2.4
 ------------
 - updated hybridauth lib
 - support of older version of yii-user

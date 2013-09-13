@@ -21,6 +21,11 @@ class HOAuth extends CWidget
 	 */
 	public $route = false;
 
+	/**
+	 * @var boolean $onlyIcons the flag that displays social buttons as icons
+	 */
+	public $onlyIcons = false;
+
 	public function init()
 	{
 		if(!$this->route)
