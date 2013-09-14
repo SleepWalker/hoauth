@@ -86,6 +86,11 @@ class HOAuthAction extends CAction
 	public $alwaysCheckPass = true;
 
 	/**
+	 * @var string $userIdentityClass UserIdentity class that will be used to log user in.
+	 */
+	public $userIdentityClass = 'UserIdentity';
+
+	/**
 	 * @var string $usernameAttribute you can specify the username attribute, when user must fill it
 	 */
 	public $usernameAttribute = false;
@@ -212,7 +217,10 @@ class HOAuthAction extends CAction
 					}
 
 					if($this->alwaysCheckPass || $user->isNewRecord)
-						$user = $this->processUser($user, $userProfile);
+						if(method_exists($this->controller, 'hoauthProcessUser'))
+							$user = $this->controller->hoauthAfterLogin($user, $newUser);
+						else
+							$user = $this->processUser($user, $userProfile);
 				}
 
 				// checking if current user is not banned or anything else
@@ -233,7 +241,7 @@ class HOAuthAction extends CAction
 				{
 					$identity = $this->useYiiUser
 					? new DummyUserIdentity($user->primaryKey, $user->email)
-					: new UserIdentity($user->email, null);
+					: new $this->userIdentityClass($user->email, null);
 
 					if(!Yii::app()->user->login($identity,$this->duration))
 						throw new Exception("Can't sign in, something wrong with UserIdentity class.");
@@ -334,22 +342,22 @@ class HOAuthAction extends CAction
 				throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
 
 			// trying to send activation email
-			$this->sendActivationMail($user);
+			$this->sendActivationEmail($user);
 
 			if($this->useYiiUser)
 			{
 				$profile->user_id = $user->primaryKey;
-        if($profile->hasAttribute('firstname'))
-        {
-          // we have an older yii-user version or is used db dump from data directory
-          $profile->firstname = $userProfile->firstName;
-          $profile->lastname = $userProfile->lastName;
-        }
-        else
-        {
-          $profile->first_name = $userProfile->firstName;
-          $profile->last_name = $userProfile->lastName;
-        }
+				if($profile->hasAttribute('firstname'))
+				{
+					// we have an older yii-user version or is used db dump from data directory
+					$profile->firstname = $userProfile->firstName;
+					$profile->lastname = $userProfile->lastName;
+				}
+				else
+				{
+					$profile->first_name = $userProfile->firstName;
+					$profile->last_name = $userProfile->lastName;
+				}
 
 				if(!$profile->save())
 					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($profile->errors, true));
@@ -366,7 +374,7 @@ class HOAuthAction extends CAction
 	 * @access protected
 	 * @return void
 	 */
-	protected function sendActivationMail($user)
+	protected function sendActivationEmail($user)
 	{
 		if($this->useYiiUser)
 		{
@@ -380,7 +388,9 @@ class HOAuthAction extends CAction
 		}
 		else
 		{
-			if(method_exists($user, 'sendActivationMail'))
+			if(method_exists($user, 'sendActivationEmail'))
+				$user->sendActivationEmail();
+			elseif(method_exists($user, 'sendActivationMail')) // TODO: delete in future
 				$user->sendActivationMail();
 		}
 	}
