@@ -1,6 +1,7 @@
 Version 1.2.5
 -------------
 - added an option to display only icons in social login widget (HOAuth::onlyIcons)
+- Authentication through pop-up window
 
 Version 1.2.4
 ------------

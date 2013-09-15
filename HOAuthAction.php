@@ -183,6 +183,7 @@ class HOAuthAction extends CAction
 			// provider with the logged-in user
 			if(!Yii::app()->user->isGuest) 
 			{
+				$accessCode = 1;
 				$oAuth->bindTo(Yii::app()->user->id);
 			}
 			else 
@@ -234,7 +235,10 @@ class HOAuthAction extends CAction
 					$accessCode = $this->yiiUserCheckAccess($user);
 
 				if(!$accessCode)
-					Yii::app()->end();
+					throw new Exception("Something wrong. You can not log in.");
+
+				if(!$oAuth->bindTo($user->primaryKey))
+					throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
 
 				// sign user in
 				if($accessCode === 1)
@@ -245,18 +249,26 @@ class HOAuthAction extends CAction
 
 					if(!Yii::app()->user->login($identity,$this->duration))
 						throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+
+					// user was successfully logged in
+					// firing callback
+					if(method_exists($this->controller, 'hoauthAfterLogin'))
+						$this->controller->hoauthAfterLogin($user, $newUser);
 				}
-
-				if(!$oAuth->bindTo($user->primaryKey))
-					throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
-
-				// user was successfully logged in
-				// firing callback
-				if(method_exists($this->controller, 'hoauthAfterLogin'))
-					$this->controller->hoauthAfterLogin($user, $newUser);
 
 				if($accessCode === 2)
 					Yii::app()->end(); // stopping script to let checkAccess() function render new content
+			}
+
+			if($accessCode === 1)
+			{
+				?>
+				<script>
+					window.opener.location.reload();
+					window.close();
+				</script>
+				<?php
+				Yii::app()->end();
 			}
 		}
 		catch( Exception $e ){
@@ -288,9 +300,11 @@ class HOAuthAction extends CAction
 				Yii::app()->end();
 			}
 		}
-
-		$returnUrl = $this->useYiiUser ? Yii::app()->modules['user']['returnUrl'] : Yii::app()->user->returnUrl;
-		Yii::app()->controller->redirect($returnUrl);
+		?>
+		<script>
+			window.close();
+		</script>
+		<?php
 	}
 	
 	/**

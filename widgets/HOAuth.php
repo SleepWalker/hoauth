@@ -39,16 +39,25 @@ class HOAuth extends CWidget
 	public function run()
 	{
 		$config = UserOAuth::getConfig();
+		echo CHtml::openTag('div', array(
+			'id' => 'hoauthWidget' . $this->id,
+			'class' => 'hoauthWidget',
+			));
+
 		foreach($config['providers'] as $provider => $settings)
 			if($settings['enabled'])
 				$this->render('link', array(
 					'provider' => $provider,
 				));
+
+		echo CHtml::closeTag('div');
 	}
 
 	protected function registerFiles()
 	{
 		$assetsUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets',false,-1,YII_DEBUG);
+		Yii::app()->getClientScript()->registerCoreScript('jquery'); 
 		Yii::app()->getClientScript()->registerCssFile($assetsUrl.'/css/zocial.css');
+		Yii::app()->getClientScript()->registerScriptFile($assetsUrl.'/js/hoauth.js');
 	}
 }
