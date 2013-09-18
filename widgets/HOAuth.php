@@ -26,6 +26,16 @@ class HOAuth extends CWidget
 	 */
 	public $onlyIcons = false;
 
+	/**
+	 * @var integer $popupWidth the width of the popup window
+	 */
+	public $popupWidth = 480;
+
+	/**
+	 * @var integer $popupHeight the height of the popup window
+	 */
+	public $popupHeight = 680;
+
 	public function init()
 	{
 		if(!$this->route)
@@ -33,7 +43,7 @@ class HOAuth extends CWidget
 		
 		require_once(dirname(__FILE__).'/../models/UserOAuth.php');
 		require_once(dirname(__FILE__).'/../HOAuthAction.php');
-		$this->registerFiles();
+		$this->registerScripts();
 	}
 
 	public function run()
@@ -53,11 +63,37 @@ class HOAuth extends CWidget
 		echo CHtml::closeTag('div');
 	}
 
-	protected function registerFiles()
+	protected function registerScripts()
 	{
 		$assetsUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets',false,-1,YII_DEBUG);
 		Yii::app()->getClientScript()->registerCoreScript('jquery'); 
 		Yii::app()->getClientScript()->registerCssFile($assetsUrl.'/css/zocial.css');
-		Yii::app()->getClientScript()->registerScriptFile($assetsUrl.'/js/hoauth.js');
+		?>
+		$(function() {
+			$('.hoauthWidget a').click(function() {
+				var signinWin;
+				var screenX     = window.screenX !== undefined ? window.screenX : window.screenLeft,
+					screenY     = window.screenY !== undefined ? window.screenY : window.screenTop,
+					outerWidth  = window.outerWidth !== undefined ? window.outerWidth : document.body.clientWidth,
+					outerHeight = window.outerHeight !== undefined ? window.outerHeight : (document.body.clientHeight - 22),
+					width       = <?=$this->popupWidth?>,
+					height      = <?=$this->popupHeight?>,
+					left        = parseInt(screenX + ((outerWidth - width) / 2), 10),
+					top         = parseInt(screenY + ((outerHeight - height) / 2.5), 10),
+					options    = (
+					'width=' + width +
+					',height=' + height +
+					',left=' + left +
+					',top=' + top
+					);
+		 
+				signinWin=window.open(this.href,'Login',options);
+
+				if (window.focus) {signinWin.focus()}
+
+				return false;
+			});
+		});
+		<?php
 	}
 }
