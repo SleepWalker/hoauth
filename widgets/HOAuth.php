@@ -66,8 +66,10 @@ class HOAuth extends CWidget
 	protected function registerScripts()
 	{
 		$assetsUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets',false,-1,YII_DEBUG);
-		Yii::app()->getClientScript()->registerCoreScript('jquery'); 
-		Yii::app()->getClientScript()->registerCssFile($assetsUrl.'/css/zocial.css');
+    $cs = Yii::app()->getClientScript();
+		$cs->registerCoreScript('jquery'); 
+    $cs->registerCssFile($assetsUrl.'/css/zocial.css');
+    ob_start();
 		?>
 		$(function() {
 			$('.hoauthWidget a').click(function() {
@@ -94,6 +96,7 @@ class HOAuth extends CWidget
 				return false;
 			});
 		});
-		<?php
+<?php
+    $cs->registerScript(__CLASS__, ob_get_clean());
 	}
 }
