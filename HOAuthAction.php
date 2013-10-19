@@ -219,7 +219,7 @@ class HOAuthAction extends CAction
 
 					if($this->alwaysCheckPass || $user->isNewRecord)
 						if(method_exists($this->controller, 'hoauthProcessUser'))
-							$user = $this->controller->hoauthAfterLogin($user, $newUser);
+							$user = $this->controller->hoauthProcessUser($user, $newUser);
 						else
 							$user = $this->processUser($user, $userProfile);
 				}
