@@ -272,33 +272,29 @@ class HOAuthAction extends CAction
 			}
 		}
 		catch( Exception $e ){
-			if(YII_DEBUG)
-			{
-				$error = "";
+			$error = "";
 
-				// Display the received error
-				switch( $e->getCode() ){ 
-					case 0 : $error = "Unspecified error."; throw $e; break;
-					case 1 : $error = "Hybriauth configuration error."; break;
-					case 2 : $error = "Provider not properly configured."; break;
-					case 3 : $error = "Unknown or disabled provider."; break;
-					case 4 : $error = "Missing provider application credentials."; break;
-					case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
-					case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
-					$oAuth->logout(); 
-					break;
-					case 7 : $error = "User not connected to the provider."; 
-					$oAuth->logout(); 
-					break;
-					case 8 : $error = "Provider does not support this feature.";	break;
-				}
-
-				$error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage(); 
-				Yii::log($error, CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
-
-				echo $error;
-				Yii::app()->end();
+			// Display the received error
+			switch( $e->getCode() ){ 
+				case 0 : $error = "Unspecified error."; throw $e; break;
+				case 1 : $error = "Hybriauth configuration error."; break;
+				case 2 : $error = "Provider not properly configured."; break;
+				case 3 : $error = "Unknown or disabled provider."; break;
+				case 4 : $error = "Missing provider application credentials."; break;
+				case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
+				case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+				$oAuth->logout(); 
+				break;
+				case 7 : $error = "User not connected to the provider."; 
+				$oAuth->logout(); 
+				break;
+				case 8 : $error = "Provider does not support this feature.";	break;
 			}
+
+			$error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage(); 
+			Yii::log($error, CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
+			if(YII_DEBUG)
+				throw $e;
 		}
 		?>
 		<script>
