@@ -91,8 +91,8 @@ class HUserInfoForm extends CFormModel {
 	public function attributeLabels()
 	{
 		return array(
-			'email'=>HOAuthAction::t('Email'),
-			'username'=>HOAuthAction::t('Nickname'),
+			'email'=>$this->_model->getAttributeLabel($this->emailAtt),
+			'username'=>$this->_model->getAttributeLabel($this->nameAtt),
 			'password'=>HOAuthAction::t('Password'),
 			);
 	}
@@ -347,13 +347,13 @@ class HUserInfoForm extends CFormModel {
 		switch($this->scenario)
 		{
 			case 'both':
-			$header = HOAuthAction::t('Please specify your nickname and email to end with registration.');
+			$header = HOAuthAction::t('Please specify your '.$this->getAttributeLabel('username').' and '.$this->getAttributeLabel('email').' to end with registration.');
 			break;
 			case 'username':
-			$header = HOAuthAction::t('Please specify your nickname to end with registration.');
+			$header = HOAuthAction::t('Please specify your '.$this->getAttributeLabel('username').' to end with registration.');
 			break;
 			case 'email':
-			$header = HOAuthAction::t('Please specify your email to end with registration.');
+			$header = HOAuthAction::t('Please specify your '.$this->getAttributeLabel('email').' to end with registration.');
 			break;
 		}
 

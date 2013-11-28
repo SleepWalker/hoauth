@@ -25,6 +25,10 @@
  *    )); ?>
  * uses a little modified Zocial CSS3 buttons: {@link https://github.com/samcollins/css-social-buttons/}
  */
+
+
+Yii::setPathOfAlias('hoauth', dirname(__FILE__));
+
 class HOAuthAction extends CAction
 {
 	/**
@@ -82,6 +86,11 @@ class HOAuthAction extends CAction
 	public $alwaysCheckPass = true;
 
 	/**
+	 * @var string $userIdentityClass UserIdentity class that will be used to log user in.
+	 */
+	public $userIdentityClass = 'UserIdentity';
+
+	/**
 	 * @var string $usernameAttribute you can specify the username attribute, when user must fill it
 	 */
 	public $usernameAttribute = false;
@@ -96,14 +105,8 @@ class HOAuthAction extends CAction
 	 */
 	protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
 
-	/**
-	 * @var ALIAS the alias of extension (you can change this, when you have put this extension in another dir)
-	 */
-	const ALIAS = 'ext.hoauth';
-
 	public function run()
-	{
-
+	{		
 		// openId login
 		if($this->enabled)
 		{
@@ -114,7 +117,7 @@ class HOAuthAction extends CAction
 				$this->useYiiUser = true;
 				// setting up yii-user's user model
 				Yii::import('application.modules.user.models.*');
-				Yii::import(self::ALIAS . '.DummyUserIdentity');
+				Yii::import('hoauth.DummyUserIdentity');
 
 				// preparing attributes array for `yii-user` module
 				if(!is_array($this->attributes))
@@ -148,8 +151,7 @@ class HOAuthAction extends CAction
 
 			if(isset($_GET['provider']))
 			{
-				Yii::import(self::ALIAS . '.models.UserOAuth');
-				Yii::import(self::ALIAS . '.models.HUserInfoForm');
+				Yii::import('hoauth.models.*');
 				$this->oAuth($_GET['provider']);
 			}
 			else
@@ -181,6 +183,7 @@ class HOAuthAction extends CAction
 			// provider with the logged-in user
 			if(!Yii::app()->user->isGuest) 
 			{
+				$accessCode = 1;
 				$oAuth->bindTo(Yii::app()->user->id);
 			}
 			else 
@@ -215,7 +218,10 @@ class HOAuthAction extends CAction
 					}
 
 					if($this->alwaysCheckPass || $user->isNewRecord)
-						$user = $this->processUser($user, $userProfile);
+						if(method_exists($this->controller, 'hoauthProcessUser'))
+							$user = $this->controller->hoauthProcessUser($user, $newUser);
+						else
+							$user = $this->processUser($user, $userProfile);
 				}
 
 				// checking if current user is not banned or anything else
@@ -229,63 +235,72 @@ class HOAuthAction extends CAction
 					$accessCode = $this->yiiUserCheckAccess($user);
 
 				if(!$accessCode)
-					Yii::app()->end();
+					throw new Exception("Something wrong. You can not log in.");
+
+				if(!$oAuth->bindTo($user->primaryKey))
+					throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
 
 				// sign user in
 				if($accessCode === 1)
 				{
 					$identity = $this->useYiiUser
 					? new DummyUserIdentity($user->primaryKey, $user->email)
-					: new UserIdentity($user->email, null);
+					: new $this->userIdentityClass($user->email, null);
 
 					if(!Yii::app()->user->login($identity,$this->duration))
 						throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+
+					// user was successfully logged in
+					// firing callback
+					if(method_exists($this->controller, 'hoauthAfterLogin'))
+						$this->controller->hoauthAfterLogin($user, $newUser);
 				}
-
-				if(!$oAuth->bindTo($user->primaryKey))
-					throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
-
-				// user was successfully logged in
-				// firing callback
-				if(method_exists($this->controller, 'hoauthAfterLogin'))
-					$this->controller->hoauthAfterLogin($user, $newUser);
 
 				if($accessCode === 2)
 					Yii::app()->end(); // stopping script to let checkAccess() function render new content
 			}
-		}
-		catch( Exception $e ){
-			if(YII_DEBUG)
+
+			if($accessCode === 1)
 			{
-				$error = "";
-
-				// Display the received error
-				switch( $e->getCode() ){ 
-					case 0 : $error = "Unspecified error."; break;
-					case 1 : $error = "Hybriauth configuration error."; break;
-					case 2 : $error = "Provider not properly configured."; break;
-					case 3 : $error = "Unknown or disabled provider."; break;
-					case 4 : $error = "Missing provider application credentials."; break;
-					case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
-					case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
-					$oAuth->logout(); 
-					break;
-					case 7 : $error = "User not connected to the provider."; 
-					$oAuth->logout(); 
-					break;
-					case 8 : $error = "Provider does not support this feature.";	break;
-				}
-
-				$error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage(); 
-				Yii::log($error, CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
-
-				echo $error;
+				?>
+				<script>
+					window.opener.location.reload();
+					window.close();
+				</script>
+				<?php
 				Yii::app()->end();
 			}
 		}
+		catch( Exception $e ){
+			$error = "";
 
-		$returnUrl = $this->useYiiUser ? Yii::app()->modules['user']['returnUrl'] : Yii::app()->user->returnUrl;
-		Yii::app()->controller->redirect($returnUrl);
+			// Display the received error
+			switch( $e->getCode() ){ 
+				case 0 : $error = "Unspecified error."; throw $e; break;
+				case 1 : $error = "Hybriauth configuration error."; break;
+				case 2 : $error = "Provider not properly configured."; break;
+				case 3 : $error = "Unknown or disabled provider."; break;
+				case 4 : $error = "Missing provider application credentials."; break;
+				case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection."; break;
+				case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again."; 
+				$oAuth->logout(); 
+				break;
+				case 7 : $error = "User not connected to the provider."; 
+				$oAuth->logout(); 
+				break;
+				case 8 : $error = "Provider does not support this feature.";	break;
+			}
+
+			$error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage(); 
+			Yii::log($error, CLogger::LEVEL_INFO, 'hoauth.'.__CLASS__);
+			if(YII_DEBUG)
+				throw $e;
+		}
+		?>
+		<script>
+			window.close();
+		</script>
+		<?php
 	}
 	
 	/**
@@ -321,7 +336,7 @@ class HOAuthAction extends CAction
 
 		if(!$form->validateUser())
 		{
-			$this->controller->render(self::ALIAS.'.views.form', array(
+			$this->controller->render('hoauth.views.form', array(
 				'form' => $form,
 				));
 			Yii::app()->end();
@@ -337,22 +352,22 @@ class HOAuthAction extends CAction
 				throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
 
 			// trying to send activation email
-			$this->sendActivationMail($user);
+			$this->sendActivationEmail($user);
 
 			if($this->useYiiUser)
 			{
 				$profile->user_id = $user->primaryKey;
-        if($profile->hasAttribute('firstname'))
-        {
-          // we have an older yii-user version or is used db dump from data directory
-          $profile->firstname = $userProfile->firstName;
-          $profile->lastname = $userProfile->lastName;
-        }
-        else
-        {
-          $profile->first_name = $userProfile->firstName;
-          $profile->last_name = $userProfile->lastName;
-        }
+				if($profile->hasAttribute('firstname'))
+				{
+					// we have an older yii-user version or is used db dump from data directory
+					$profile->firstname = $userProfile->firstName;
+					$profile->lastname = $userProfile->lastName;
+				}
+				else
+				{
+					$profile->first_name = $userProfile->firstName;
+					$profile->last_name = $userProfile->lastName;
+				}
 
 				if(!$profile->save())
 					throw new Exception("Error, while saving " . get_class($profile) . "	model:\n\n" . var_export($profile->errors, true));
@@ -369,7 +384,7 @@ class HOAuthAction extends CAction
 	 * @access protected
 	 * @return void
 	 */
-	protected function sendActivationMail($user)
+	protected function sendActivationEmail($user)
 	{
 		if($this->useYiiUser)
 		{
@@ -383,7 +398,9 @@ class HOAuthAction extends CAction
 		}
 		else
 		{
-			if(method_exists($user, 'sendActivationMail'))
+			if(method_exists($user, 'sendActivationEmail'))
+				$user->sendActivationEmail();
+			elseif(method_exists($user, 'sendActivationMail')) // TODO: delete in future
 				$user->sendActivationMail();
 		}
 	}
@@ -452,7 +469,7 @@ class HOAuthAction extends CAction
 
 		if($error && $render)
 		{
-			$this->controller->render(self::ALIAS.'.views.yiiUserError', array(
+			$this->controller->render('hoauth.views.yiiUserError', array(
 				'errorCode' => $error,
 				'user' => $user,
 				));

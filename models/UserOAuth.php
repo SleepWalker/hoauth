@@ -103,20 +103,7 @@ class UserOAuth extends CActiveRecord
 		$config = self::getConfigPath();
 
 		if(!file_exists($config))
-		{
-			$oldConfig = dirname(__FILE__) . '/../hybridauth' . '/config.php';
-
-			if(file_exists($oldConfig))
-			{
-				// TODO: delete this in next versions
-				if (is_writable($config) && is_writable($oldConfig)) // trying to move old config to the new dir
-				rename($oldConfig, $config);
-				else
-					$config = $oldConfig;
-			}
-			else
-				throw new CException("The config.php file doesn't exists");
-		}
+			throw new CException("The config.php file doesn't exists");
 
 		return require($config);
 	}
@@ -130,8 +117,12 @@ class UserOAuth extends CActiveRecord
 		if(empty($config))
 		{
 			$yiipath = Yii::getPathOfAlias('application.config.hoauth');
+			$config = $yiipath . '.php';
 		}
-		$config = $yiipath . '.php';
+		else if(strpos($config, DIRECTORY_SEPARATOR)===false)
+		{
+			$config = Yii::getPathOfAlias($config).'.php';
+		}
 
 		return $config;
 	}
@@ -300,14 +291,6 @@ class UserOAuth extends CActiveRecord
 	 */
 	protected static function createDbTable()
 	{
-		//TODO: remove me in newer versions
-		if(Yii::app()->db->getSchema()->getTable('user_oauth') !== null && !empty(Yii::app()->db->tablePrefix))
-		{
-			// providing table rename, to handle support of prefixed tables in v.1.2.2
-			Yii::app()->db->createCommand('RENAME TABLE `user_oauth` TO `tbl_user_oauth`')->execute();
-			Yii::app()->controller->refresh();
-		}
-
 		$sql = file_get_contents(dirname(__FILE__).'/user_oauth.sql');
 		$sql = strtr($sql, array('{{user_oauth}}' => Yii::app()->db->tablePrefix . 'user_oauth'));
 		Yii::app()->db->createCommand($sql)->execute();
