@@ -15,4 +15,5 @@ return array (
 	'is banned!' => 'ha sido bloqueada.',
 	'Return to main page' => 'Volver a la página de inicio',
 	'Return to login page' => 'Volver a la página de login',
+	'Sign in with' => 'Ingresar con',
 );
