@@ -333,7 +333,7 @@ class HOAuthAction extends CAction
 
 		// trying to fill email and username fields
 		// NOTE: we display `username` field in our form only if it is required by the model
-		if(!$user->isAttributeRequired($this->usernameAttribute))
+		if($this->usernameAttribute && !$user->isAttributeRequired($this->usernameAttribute))
 			$this->usernameAttribute = false;
 
 		$form = new HUserInfoForm($user, $this->_emailAttribute, $this->usernameAttribute);
