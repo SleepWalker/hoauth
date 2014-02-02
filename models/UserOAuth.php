@@ -117,8 +117,12 @@ class UserOAuth extends CActiveRecord
 		if(empty($config))
 		{
 			$yiipath = Yii::getPathOfAlias('application.config.hoauth');
+			$config = $yiipath . '.php';
 		}
-		$config = $yiipath . '.php';
+		else if(strpos($config, DIRECTORY_SEPARATOR)===false)
+		{
+			$config = Yii::getPathOfAlias($config).'.php';
+		}
 
 		return $config;
 	}
