@@ -96,12 +96,27 @@ class HOAuthAction extends CAction
 	public $usernameAttribute = false;
 
 	/**
+	 * @var boolean $useUserReturnUrl enable/disable usage of CWebUser::returnUrl
+	 */
+	public $useUserReturnUrl = true;
+
+	/**
+	 * @var string|array $oauthReturnUrl specific for oauth return url
+	 */
+	public $oauthReturnUrl = false;
+
+	/**
+	 * @var string $returnUrlStateId the id that should be used to store state for hoauth return url
+	 */
+	public static $oauthReturnUrlStateId = '__oauthReturnUrl';
+
+	/**
 	 * @var string $_emailAttribute
 	 */
 	protected $_emailAttribute = false;
 
 	/**
-	 * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all available attributes in HybridAuth 2.0.11) + additional attributes (see $attributes)
+	 * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all available attributes in HybridAuth 2.0.11) + additional attributes (see $attributes property)
 	 */
 	protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
 
@@ -264,8 +279,18 @@ class HOAuthAction extends CAction
 			{
 				?>
 				<script>
-					window.opener.location.reload();
-					window.close();
+					var returnUrl = <?php echo $this->useUserReturnUrl ? CJavaScript::encode(Yii::app()->user->getReturnUrl(false)) : false; ?>;
+					if(window.opener)
+					{
+						if(returnUrl)
+							window.opener.location.href = returnUrl;
+						else
+							window.opener.location.reload();
+
+						window.close();
+					}else{
+						window.location.href = returnUrl ? returnUrl : '/';
+					}
 				</script>
 				<?php
 				Yii::app()->end();
