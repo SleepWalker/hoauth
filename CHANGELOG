@@ -3,6 +3,7 @@ Version 1.2.5
 - added an option to display only icons in social login widget (HOAuth::onlyIcons)
 - Authentication through pop-up window
 - Added support of CWebUser::returnUrl (for popup window only if it has not default value)
+- Enh#45: Added composer support
 
 Version 1.2.4
 ------------
