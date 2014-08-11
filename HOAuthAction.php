@@ -56,7 +56,7 @@ class HOAuthAction extends CAction
 	 *
 	 * @see HOAuthAction::$avaibleAtts
 	 */
-	public $attributes;
+	public $attributes = array();
 
 	/**
 	 * @var string $scenario scenario name for the $model (optional)
@@ -76,7 +76,7 @@ class HOAuthAction extends CAction
 	/**
 	 * @var boolean $useYiiUser enables support of Yii user module
 	 */
-	public static $useYiiUser = false;
+	public static $useYiiUser;
 
 	/**
 	 * @var boolean $alwaysCheckPass flag to control password checking for the scenario, 
@@ -123,54 +123,14 @@ class HOAuthAction extends CAction
 	public function run()
 	{		
 		// openId login
-		if($this->enabled)
-		{
-			$path = dirname(__FILE__);
-			// checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
-			if($this->useYiiUser || file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php'))
-			{
-				$this->useYiiUser = true;
-				// setting up yii-user's user model
-				Yii::import('application.modules.user.models.*');
-				Yii::import('hoauth.DummyUserIdentity');
+		if($this->enabled) {
+			$this->setUp();
 
-				// preparing attributes array for `yii-user` module
-				if(!is_array($this->attributes))
-					$this->attributes = array();
-
-				$this->attributes = CMap::mergeArray($this->attributes, array(
-					'email' => 'email',
-					'username' => 'displayName',
-					'status' => User::STATUS_ACTIVE,
-					));
-
-				$this->usernameAttribute = 'username';
-				$this->_emailAttribute = 'email';
-			}
-			else
-			{
-				Yii::import($this->model, true);
-				$this->model = substr($this->model, strrpos($this->model, '.'));
-
-				if(!method_exists($this->model, 'findByEmail'))
-					throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
-
-				$this->_emailAttribute = array_search('email', $this->attributes);
-			}
-
-			if(!isset($this->attributes) || !is_array($this->attributes) || !count($this->attributes))
-				throw new CException('You must specify the model attributes for ' . __CLASS__);
-
-			if(!in_array('email', $this->attributes))
-				throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
-
-			if(isset($_GET['provider']))
-			{
+			if(isset($_GET['provider'])) {
 				Yii::import('hoauth.models.*');
 				$this->oAuth($_GET['provider']);
-			}
-			else
-			{
+			} else {
+				$path = dirname(__FILE__);
 				require($path.'/hybridauth/index.php');
 				Yii::app()->end();
 			}
@@ -503,9 +463,63 @@ class HOAuthAction extends CAction
 		return $return;
 	}
 
+	/**
+	 * Checks if the action was properly setup and ready to run
+	 * @throws Exception If improperly setted up
+	 */
+	public function setUp()
+	{
+		if(!is_array($this->attributes)) {
+			$this->attributes = array();
+		}
+
+		if(!isset(self::$useYiiUser)) {
+			self::$useYiiUser = file_exists(Yii::getPathOfAlias('application.modules.user.components') . '/UWrelBelongsTo.php');
+		}
+
+		// checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
+		if(self::$useYiiUser === true) {
+			// setting up yii-user's user model
+			Yii::import('application.modules.user.models.*');
+			Yii::import('hoauth.DummyUserIdentity');
+
+			// preparing attributes array for `yii-user` module
+			$this->attributes = CMap::mergeArray(array(
+				'email' => 'email',
+				'username' => 'displayName',
+				'status' => User::STATUS_ACTIVE,
+				), $this->attributes);
+
+			$this->usernameAttribute = 'username';
+			$this->_emailAttribute = 'email';
+		} else {
+			if(!in_array('email', $this->attributes)) {
+				throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
+			}
+
+			Yii::import($this->model, true);
+			$this->model = substr($this->model, strrpos($this->model, '.'));
+
+			$this->_emailAttribute = array_search('email', $this->attributes);
+		}
+
+		if(empty($this->model) || !class_exists($this->model)) {
+			throw new CException('You should specify the User model to work with');
+		}
+
+		if(!method_exists($this->model, 'findByEmail') && !self::$useYiiUser) {
+			throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
+		}
+	}
+
 	public function getUseYiiUser()
 	{
 		return self::$useYiiUser;
+	}
+
+	public function getEmailAttribute()
+	{
+		return $this->_emailAttribute;
 	}
 
 	public function setUseYiiUser($value)
