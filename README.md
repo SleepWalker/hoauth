@@ -1,4 +1,4 @@
-hoauth v1.2.4
+hoauth v1.2.5
 =============
 
 * `hoauth` extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net/) in Yii. (facebook, google, twitter, vkontakte and much more).
