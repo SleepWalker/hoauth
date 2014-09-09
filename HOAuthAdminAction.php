@@ -12,23 +12,42 @@
 class HOAuthAdminAction extends CAction
 {
 	/**
+	 * @var string $endPointUrl url with wich will the social network comunicate
+	 */
+	private $endPointUrl;
+
+	/**
+	 * @var string $configPath path to the HybridAuth config file
+	 */
+	private $configPath; 
+
+	/**
 	 * @var string $route id of module and controller (eg. module/controller) for wich to generate oauth urls
 	 */
 	public $route = false;
 
 	public function run()
 	{
-		$path = dirname(__FILE__);
-		if(!$this->route)
-			$endpoint_url = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
-		else
-			$endpoint_url = $this->route;
+		if(!$this->route) {
+			$this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id . '/oauth';
+		}
 
-		$endpoint_url = Yii::app()->createAbsoluteUrl($endpoint_url . '/oauth');
+		$endpoint_url = Yii::app()->createAbsoluteUrl($this->route);
+		$this->endPointUrl = $endpoint_url;
+
 		require_once(dirname(__FILE__).'/models/UserOAuth.php');
-		$config_path = UserOAuth::getConfigPath();
+		$this->configPath = UserOAuth::getConfigPath();
 
-		include($path.'/hybridauth/install.php');
+		$this->controller->renderText($this->getForm($this->configPath, $this->endPointUrl));
 		Yii::app()->end();
+	}
+
+	public function getForm($config_path, $endpoint_url)
+	{
+		$path = dirname(__FILE__);
+
+		ob_start();
+		include($path.'/hybridauth/install.php');
+		return ob_get_clean();
 	}
 }

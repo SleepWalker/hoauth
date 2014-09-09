@@ -5,7 +5,7 @@
  * then user can link curren provider to the local account.
  * 
  * @uses CFormModel
- * @version 1.2.4
+ * @version 1.2.5
  * @copyright Copyright &copy; 2013 Sviatoslav Danylenko
  * @author Sviatoslav Danylenko <dev@udf.su> 
  * @license MIT ({@link http://opensource.org/licenses/MIT})
@@ -49,7 +49,8 @@ class HUserInfoForm extends CFormModel {
 		return array(
 			array('username', 'required', 'on' =>'username, both'), //, username_pass, both, both_pass'),
 			array('email', 'required', 'on' =>'email, email_pass, both, both_pass, username_pass'),
-			array('email', 'email', 'on' =>'email, email_pass, both, both_pass, username_pass'),
+			array('email', 'email', 'allowEmpty' => true),
+			array('password', 'required', 'on' => 'email_pass, username_pass, both_pass'),
 			array('password', 'validatePassword', 'on' => 'email_pass, username_pass, both_pass'),
 			array('password', 'unsafe', 'on' => 'email, username, both'),
 		);
@@ -113,9 +114,9 @@ class HUserInfoForm extends CFormModel {
 		}else{
 			$user = $this->_model->findByEmail($this->email);
 			if(method_exists($this->_model, 'verifyPassword'))
-				$valid = $user->verifyPassword($this->password);
+				$valid = $user->verifyPassword($this->$attribute);
 			elseif(method_exists($this->_model, 'validatePassword'))
-				$valid = $user->validatePassword($this->password);
+				$valid = $user->validatePassword($this->$attribute);
 			else
 				throw new CException('You need to implement verifyPassword($password) or validatePassword($password) method in order to let hoauth validate user password.');
 		}

@@ -4,7 +4,7 @@
  * that ARE CONNECTED in HybridAuth 
  * 
  * @uses CWidget
- * @version 1.2.4
+ * @version 1.2.5
  * @copyright Copyright &copy; 2013 Charles Kefuver
  * @author Charles Kefauer <ckefauver@ibacom.es> 
  * @modified from HOAuth by Sviatoslav Danylenko <dev@udf.su> 
