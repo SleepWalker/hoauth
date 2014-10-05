@@ -28,7 +28,7 @@
 
 namespace sleepwalker\hoauth;
 
-Yii::setPathOfAlias('sleepwalker.hoauth', dirname(__FILE__));
+\Yii::setPathOfAlias('sleepwalker.hoauth', dirname(__FILE__));
 
 class HOAuthAction extends \CAction
 {
@@ -54,8 +54,6 @@ class HOAuthAction extends \CAction
      *      'is_active' => 1,
      *      'date_joined' => new CDbExpression('NOW()'),
      *    ),
-     *
-     * @see HOAuthAction::$avaibleAtts
      */
     public $attributes = array();
 
@@ -115,12 +113,7 @@ class HOAuthAction extends \CAction
      * @var string $_emailAttribute
      */
     protected $_emailAttribute = false;
-
-    /**
-     * @var array $avaibleAtts Hybridauth attributes that support by this script (this a list of all available attributes in HybridAuth 2.0.11) + additional attributes (see $attributes property)
-     */
-    protected $_avaibleAtts = array('identifier', 'profileURL', 'webSiteURL', 'photoURL', 'displayName', 'description', 'firstName', 'lastName', 'gender', 'language', 'age', 'birthDay', 'birthMonth', 'birthYear', 'email', 'emailVerified', 'phone', 'address', 'country', 'region', 'city', 'zip', 'birthDate', 'genderShort');
-
+    
     /**
      * @var UserOAuth the model to handle the work during the request
      */
@@ -133,16 +126,20 @@ class HOAuthAction extends \CAction
 
             if (isset($_GET['provider'])) {
                 // after oauth — working with user model and his data from SN
-                $this->oAuth($_GET['provider']);
+                $this->authenticate($_GET['provider']);
             } else {
-                // Handling OAuth (redirects, tokens etc.)
-                $path = dirname(__FILE__);
-                require ($path . '/hybridauth/index.php');
-                \Yii::app()->end();
+                $this->processAuthRequests();
             }
         }
 
-        \Yii::app()->controller->{ $this->loginAction}();
+        \Yii::app()->controller->{$this->loginAction}();
+    }
+
+    protected function processAuthRequests()
+    {
+        $path = dirname(__FILE__);
+        require ($path . '/hybridauth/index.php');
+        \Yii::app()->end();
     }
 
     /**
@@ -153,7 +150,7 @@ class HOAuthAction extends \CAction
      * @access protected
      * @return void
      */
-    protected function oAuth($provider)
+    protected function authenticate($provider)
     {
         try {
             // trying to authenticate user via social network
@@ -271,7 +268,7 @@ class HOAuthAction extends \CAction
     protected function prepareGuestUser()
     {
         $isNewUser = false;
-        $userProfile = $this->oAuth->profile;
+        $userProfile = new components\ProfileAdapter($this->oAuth->profile);
 
         if ($this->oAuth->isBond) {
             // this social network account is bond to existing local account
@@ -431,29 +428,15 @@ class HOAuthAction extends \CAction
      */
     protected function populateModel($user, $profile)
     {
-        foreach ($this->attributes as $attribute => $pAtt) {
-            if (in_array($pAtt, $this->_avaibleAtts)) {
-                switch ($pAtt) {
-                    case 'genderShort':
-                        $gender = array('female' => 'f', 'male' => 'm');
-                        $att = $gender[$profile->gender];
-                        break;
-                    case 'birthDate':
-                        $att = $profile->birthYear
-                        ? sprintf("%04d-%02d-%02d", $profile->birthYear, $profile->birthMonth, $profile->birthDay)
-                        : null;
-                        break;
-                    case 'email':
-                        $att = $profile->emailVerified;
-                        break;
-                    default:
-                        $att = $profile->$pAtt;
-                }
-                if (!empty($att)) {
-                    $user->$attribute = $att;
-                }
+        foreach ($this->attributes as $modelAttribute => $profileAttribute) {
+            if (isset($profile->$profileAttribute)) {
+                $value = $profile->$profileAttribute;
             } else {
-                $user->$attribute = $pAtt;
+                $value = $profileAttribute;
+            }
+
+            if (!empty($value)) {
+                $user->$modelAttribute = $value;
             }
         }
     }
