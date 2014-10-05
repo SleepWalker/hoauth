@@ -10,34 +10,33 @@
  * @link https://github.com/SleepWalker/hoauth
  */
 
-class HConnectedNetworks extends CWidget
+namespace sleepwalker\hoauth\widgets;
+
+class HConnectedNetworks extends \CWidget
 {
     public $tag = 'ul';
 
     public function run()
     {
-        require_once (dirname(__FILE__) . '/../models/UserOAuth.php');
-        require_once (dirname(__FILE__) . '/../HOAuthAction.php');
-
         // provider delete action
-        if (Yii::app()->request->isPostRequest && isset($_GET['hoauthDelSN'])) {
-            ob_clean();
-            ob_clean();
-            $userNetwork = UserOAuth::model()->findUser(Yii::app()->user->id, $_GET['hoauthDelSN']);
+        if (\Yii::app()->request->isPostRequest && isset($_GET['hoauthDelSN'])) {
+            while(@ob_end_clean());
+
+            $userNetwork = \sleepwalker\hoauth\models\UserOAuth::model()->findUser(\Yii::app()->user->id, $_GET['hoauthDelSN']);
             if ($userNetwork) {
                 $userNetwork->delete();
             }
             Yii::app()->end();
         }
 
-        $userNetworks = UserOAuth::model()->findUser(Yii::app()->user->id);
+        $userNetworks = \sleepwalker\hoauth\models\UserOAuth::model()->findUser(\Yii::app()->user->id);
         $sns = array();
 
         foreach ($userNetworks as $network) {
             $deleteUrl = '?hoauthDelSN=' . $network->provider;
             try {
                 array_push($sns, array('provider' => $network->provider, 'profileUrl' => $network->profileCache->profileURL, 'deleteUrl' => $deleteUrl));
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 echo $e->getMessage();
             }
         }

@@ -14,7 +14,10 @@
 /**
  * NOTE: If you want to change the order of button it is better to change this order in HybridAuth config.php file
  */
-class HOAuth extends CWidget
+
+namespace sleepwalker\hoauth\widgets;
+
+class HOAuth extends \CWidget
 {
     /**
      * @var string $route id of module and controller (eg. module/controller) for wich to generate oauth urls
@@ -42,15 +45,13 @@ class HOAuth extends CWidget
             $this->route = $this->controller->module ? $this->controller->module->id . '/' . $this->controller->id : $this->controller->id;
         }
 
-        require_once (dirname(__FILE__) . '/../models/UserOAuth.php');
-        require_once (dirname(__FILE__) . '/../HOAuthAction.php');
         $this->registerScripts();
     }
 
     public function run()
     {
-        $config = UserOAuth::getConfig();
-        echo CHtml::openTag('div', array(
+        $config = \sleepwalker\hoauth\models\UserOAuth::getConfig();
+        echo \CHtml::openTag('div', array(
             'id' => 'hoauthWidget' . $this->id,
             'class' => 'hoauthWidget',
         ));
@@ -63,13 +64,13 @@ class HOAuth extends CWidget
             }
         }
 
-        echo CHtml::closeTag('div');
+        echo \CHtml::closeTag('div');
     }
 
     protected function registerScripts()
     {
-        $assetsUrl = Yii::app()->getAssetManager()->publish(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets', false, -1, YII_DEBUG);
-        $cs = Yii::app()->getClientScript();
+        $assetsUrl = \Yii::app()->getAssetManager()->publish(dirname(__FILE__) . '/assets', false, -1, YII_DEBUG);
+        $cs = \Yii::app()->getClientScript();
         $cs->registerCoreScript('jquery');
         $cs->registerCssFile($assetsUrl . '/css/zocial.css');
         ob_start();

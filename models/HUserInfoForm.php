@@ -11,7 +11,10 @@
  * @license MIT ({@link http://opensource.org/licenses/MIT})
  * @link https://github.com/SleepWalker/hoauth
  */
-class HUserInfoForm extends CFormModel
+
+namespace sleepwalker\hoauth\models;
+
+class HUserInfoForm extends \CFormModel
 {
     /**
      * @var $email
@@ -65,7 +68,7 @@ class HUserInfoForm extends CFormModel
     public function __construct($model, $emailAtt, $nameAtt = null, $scenario = 'both')
     {
         if (empty($emailAtt)) {
-            throw new CException('$emailAtt can not be empty! Please specify email attribute name.');
+            throw new \CException('$emailAtt can not be empty! Please specify email attribute name.');
         }
 
         $this->email = $model->$emailAtt;
@@ -100,7 +103,7 @@ class HUserInfoForm extends CFormModel
         return array(
             'email' => $this->_model->getAttributeLabel($this->emailAtt),
             'username' => $this->_model->getAttributeLabel($this->nameAtt),
-            'password' => HOAuthAction::t('Password'),
+            'password' => \sleepwalker\hoauth\HOAuthAction::t('Password'),
         );
     }
 
@@ -113,9 +116,9 @@ class HUserInfoForm extends CFormModel
      */
     public function validatePassword($attribute, $params)
     {
-        if (HOAuthAction::$useYiiUser) {
-            $user = User::model()->notsafe()->findByAttributes(array('email' => $this->email));
-            $valid = Yii::app()->getModule('user')->encrypting($this->password) === $user->password;
+        if (\sleepwalker\hoauth\HOAuthAction::$useYiiUser) {
+            $user = \User::model()->notsafe()->findByAttributes(array('email' => $this->email));
+            $valid = \Yii::app()->getModule('user')->encrypting($this->password) === $user->password;
         } else {
             $user = $this->_model->findByEmail($this->email);
             if (method_exists($this->_model, 'verifyPassword')) {
@@ -124,7 +127,7 @@ class HUserInfoForm extends CFormModel
                 $valid = $user->validatePassword($this->$attribute);
             } else {
 
-                throw new CException('You need to implement verifyPassword($password) or validatePassword($password) method in order to let hoauth validate user password.');
+                throw new \CException('You need to implement verifyPassword($password) or validatePassword($password) method in order to let hoauth validate user password.');
             }
         }
 
@@ -132,7 +135,7 @@ class HUserInfoForm extends CFormModel
             // setting up the current model, to use it later in HOAuthAction
             $this->_model = $user;
         } else {
-            $this->addError('password', HOAuthAction::t('Sorry, but password is incorrect'));
+            $this->addError('password', \sleepwalker\hoauth\HOAuthAction::t('Sorry, but password is incorrect'));
         }
     }
 
@@ -283,10 +286,10 @@ class HUserInfoForm extends CFormModel
                 $this->nameAtt => $this->username,
             ), false);
 
-            if (HOAuthAction::$useYiiUser) {
+            if (\sleepwalker\hoauth\HOAuthAction::$useYiiUser) {
                 $this->_model->superuser = 0;
-                $this->_model->status = (Yii::app()->getModule('user')->activeAfterRegister) ? User::STATUS_ACTIVE : User::STATUS_NOACTIVE;
-                $this->_model->activkey = UserModule::encrypting(microtime() . $this->_model->email);
+                $this->_model->status = (\Yii::app()->getModule('user')->activeAfterRegister) ? \User::STATUS_ACTIVE : \User::STATUS_NOACTIVE;
+                $this->_model->activkey = \UserModule::encrypting(microtime() . $this->_model->email);
             }
         }
 
@@ -300,7 +303,7 @@ class HUserInfoForm extends CFormModel
     public function getForm()
     {
         if (!$this->_form) {
-            $this->_form = new CForm(array(
+            $this->_form = new \CForm(array(
                 'id' => strtolower(__CLASS__),
                 'elements' => array(
                     '<div class="form">',
@@ -318,7 +321,7 @@ class HUserInfoForm extends CFormModel
                 'buttons' => array(
                     'submit' => array(
                         'type' => 'submit',
-                        'label' => HOAuthAction::t('Submit'),
+                        'label' => \sleepwalker\hoauth\HOAuthAction::t('Submit'),
                     ),
                     '</div>',
                 ),
@@ -352,13 +355,13 @@ class HUserInfoForm extends CFormModel
         $header = '';
         switch ($this->scenario) {
             case 'both':
-                $header = HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('username') . ' and ' . $this->getAttributeLabel('email') . ' to end with registration.');
+                $header = \sleepwalker\hoauth\HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('username') . ' and ' . $this->getAttributeLabel('email') . ' to end with registration.');
                 break;
             case 'username':
-                $header = HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('username') . ' to end with registration.');
+                $header = \sleepwalker\hoauth\HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('username') . ' to end with registration.');
                 break;
             case 'email':
-                $header = HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('email') . ' to end with registration.');
+                $header = \sleepwalker\hoauth\HOAuthAction::t('Please specify your ' . $this->getAttributeLabel('email') . ' to end with registration.');
                 break;
         }
 

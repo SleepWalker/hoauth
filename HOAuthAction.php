@@ -26,9 +26,11 @@
  * uses a little modified Zocial CSS3 buttons: {@link https://github.com/samcollins/css-social-buttons/}
  */
 
-Yii::setPathOfAlias('hoauth', dirname(__FILE__));
+namespace sleepwalker\hoauth;
 
-class HOAuthAction extends CAction
+Yii::setPathOfAlias('sleepwalker.hoauth', dirname(__FILE__));
+
+class HOAuthAction extends \CAction
 {
     /**
      * @var boolean $enabled defines whether the ouath functionality is active. Useful for example for CMS, where user can enable or disable oauth functionality in control panel
@@ -131,17 +133,16 @@ class HOAuthAction extends CAction
 
             if (isset($_GET['provider'])) {
                 // after oauth — working with user model and his data from SN
-                Yii::import('hoauth.models.*');
                 $this->oAuth($_GET['provider']);
             } else {
                 // Handling OAuth (redirects, tokens etc.)
                 $path = dirname(__FILE__);
                 require ($path . '/hybridauth/index.php');
-                Yii::app()->end();
+                \Yii::app()->end();
             }
         }
 
-        Yii::app()->controller->{ $this->loginAction}();
+        \Yii::app()->controller->{ $this->loginAction}();
     }
 
     /**
@@ -156,7 +157,7 @@ class HOAuthAction extends CAction
     {
         try {
             // trying to authenticate user via social network
-            $oAuth = UserOAuth::model()->authenticate($provider);
+            $oAuth = \sleepwalker\hoauth\models\UserOAuth::model()->authenticate($provider);
             $this->setOauth($oAuth);
 
             $accessCode = $this->getAccessCode();
@@ -167,9 +168,9 @@ class HOAuthAction extends CAction
                 $this->closePopup();
                 ?>
                 <?php
-                Yii::app()->end();
+                \Yii::app()->end();
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->handleError($e);
         }
 
@@ -178,7 +179,7 @@ class HOAuthAction extends CAction
 
     protected function redirectAfterAuth()
     {
-        $returnUrl = CJavaScript::encode($this->useUserReturnUrl ? Yii::app()->user->getReturnUrl(false) : false);
+        $returnUrl = \CJavaScript::encode($this->useUserReturnUrl ? \Yii::app()->user->getReturnUrl(false) : false);
         echo '
         <script>
             var returnUrl = ' . $returnUrl . ';
@@ -211,9 +212,9 @@ class HOAuthAction extends CAction
         $oAuth = $this->oAuth;
         // If we already have a user logged in, associate the authenticated
         // provider with the logged-in user
-        if (!Yii::app()->user->isGuest) {
+        if (!\Yii::app()->user->isGuest) {
             $accessCode = 1;
-            $oAuth->bindTo(Yii::app()->user->id);
+            $oAuth->bindTo(\Yii::app()->user->id);
         } else {
             list($user, $isNewUser) = $this->prepareGuestUser();
 
@@ -229,15 +230,15 @@ class HOAuthAction extends CAction
             switch ($accessCode) {
                 case 1:
                     if (!$oAuth->bindTo($user->primaryKey)) {
-                        throw new Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
+                        throw new \Exception("Error, while binding user to provider:\n\n" . var_export($oAuth->errors, true));
                     }
 
                     $identity = $this->useYiiUser
                     ? new DummyUserIdentity($user->primaryKey, $user->email)
                     : new $this->userIdentityClass($user->email, null);
 
-                    if (!Yii::app()->user->login($identity, $this->duration)) {
-                        throw new Exception("Can't sign in, something wrong with UserIdentity class.");
+                    if (!\Yii::app()->user->login($identity, $this->duration)) {
+                        throw new \Exception("Can't sign in, something wrong with UserIdentity class.");
                     }
 
                     // user was successfully logged in
@@ -248,11 +249,11 @@ class HOAuthAction extends CAction
                     break;
 
                 case 2:// stopping script to let checkAccess() function render new content
-                    Yii::app()->end();
+                    \Yii::app()->end();
                     break;
 
                 default:
-                    throw new Exception("Something wrong. You can not log in.");
+                    throw new \Exception("Something wrong. You can not log in.");
             }
         }
 
@@ -274,7 +275,7 @@ class HOAuthAction extends CAction
 
         if ($this->oAuth->isBond) {
             // this social network account is bond to existing local account
-            Yii::log("Logged in with existing link with '{$this->oAuth->provider}' provider", CLogger::LEVEL_INFO, 'hoauth.' . __CLASS__);
+            \Yii::log("Logged in with existing link with '{$this->oAuth->provider}' provider", \CLogger::LEVEL_INFO, 'sleepwalker.hoauth.' . __CLASS__);
             $user = $this->userModel->findByPk($this->oAuth->user_id);
 
             return array($user, $isNewUser);
@@ -317,14 +318,14 @@ class HOAuthAction extends CAction
     protected function processUser($user, $userProfile)
     {
         if ($this->useYiiUser) {
-            $profile = new Profile();
+            $profile = new \Profile();
             // enabling register mode
             // old versions of yii
             $profile->regMode = true;
             // new version, when regMode is static property
-            $prop = new ReflectionProperty('Profile', 'regMode');
+            $prop = new \ReflectionProperty('Profile', 'regMode');
             if ($prop->isStatic()) {
-                Profile::$regMode = true;
+                \Profile::$regMode = true;
             }
         }
 
@@ -339,7 +340,7 @@ class HOAuthAction extends CAction
         // the model won't be new, if user provided email and password of existing account
         if ($user->isNewRecord) {
             if (!$user->save()) {
-                throw new Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
+                throw new \Exception("Error, while saving {$this->model} model:\n\n" . var_export($user->errors, true));
             }
 
             if ($this->useYiiUser) {
@@ -354,7 +355,7 @@ class HOAuthAction extends CAction
                 }
 
                 if (!$profile->save()) {
-                    throw new Exception("Error, while saving " . get_class($profile) . " model:\n\n" . var_export($profile->errors, true));
+                    throw new \Exception("Error, while saving " . get_class($profile) . " model:\n\n" . var_export($profile->errors, true));
                 }
             }
 
@@ -380,14 +381,14 @@ class HOAuthAction extends CAction
             $this->usernameAttribute = false;
         }
 
-        $form = new HUserInfoForm($user, $this->_emailAttribute, $this->usernameAttribute);
+        $form = new models\HUserInfoForm($user, $this->_emailAttribute, $this->usernameAttribute);
 
         if (!$form->validateUser()) {
             // We need to request some info from user
-            $this->controller->render('hoauth.views.form', array(
+            $this->controller->render('sleepwalker.hoauth.views.form', array(
                 'form' => $form,
             ));
-            Yii::app()->end();
+            \Yii::app()->end();
         }
 
         // updating attributes in $user model (if needed)
@@ -408,9 +409,9 @@ class HOAuthAction extends CAction
         if ($this->useYiiUser) {
             // why not to put this code not in controller, but in the User model of `yii-user` module?
             // for now I can only copy-paste this code from controller...
-            if (Yii::app()->getModule('user')->sendActivationMail) {
-                $activation_url = Yii::app()->createAbsoluteUrl('/user/activation/activation', array("activkey" => $user->activkey, "email" => $user->email));
-                UserModule::sendMail($user->email, UserModule::t("You registered on {site_name}", array('{site_name}' => Yii::app()->name)), UserModule::t("To activate your account, please go to {activation_url}", array('{activation_url}' => $activation_url)));
+            if (\Yii::app()->getModule('user')->sendActivationMail) {
+                $activation_url = \Yii::app()->createAbsoluteUrl('/user/activation/activation', array("activkey" => $user->activkey, "email" => $user->email));
+                \UserModule::sendMail($user->email, \UserModule::t("You registered on {site_name}", array('{site_name}' => \Yii::app()->name)), \UserModule::t("To activate your account, please go to {activation_url}", array('{activation_url}' => $activation_url)));
             }
         } else {
             if (method_exists($user, 'sendActivationEmail')) {
@@ -465,19 +466,19 @@ class HOAuthAction extends CAction
      */
     protected function yiiUserCheckAccess($user, $render = true)
     {
-        if ($user->status == 0 && Yii::app()->getModule('user')->loginNotActiv == false) {
-            $error = UserIdentity::ERROR_STATUS_NOTACTIV;
+        if ($user->status == 0 && \Yii::app()->getModule('user')->loginNotActiv == false) {
+            $error = \UserIdentity::ERROR_STATUS_NOTACTIV;
             $return = 2;
         } elseif ($user->status == -1) {
-            $error = UserIdentity::ERROR_STATUS_BAN;
+            $error = \UserIdentity::ERROR_STATUS_BAN;
             $return = 0;
         } else {
-            $error = UserIdentity::ERROR_NONE;
+            $error = \UserIdentity::ERROR_NONE;
             $return = 1;
         }
 
         if ($error && $render) {
-            $this->controller->render('hoauth.views.yiiUserError', array(
+            $this->controller->render('sleepwalker.hoauth.views.yiiUserError', array(
                 'errorCode' => $error,
                 'user' => $user,
             ));
@@ -497,41 +498,40 @@ class HOAuthAction extends CAction
         }
 
         if (!isset(self::$useYiiUser)) {
-            self::$useYiiUser = file_exists(Yii::getPathOfAlias('user.components') . '/UWrelBelongsTo.php');
+            self::$useYiiUser = file_exists(\Yii::getPathOfAlias('user.components') . '/UWrelBelongsTo.php');
         }
 
         // checking if we have `yii-user` module (I think that `UWrelBelongsTo` is unique class name from `yii-user`)
         if (self::$useYiiUser === true) {
             // setting up yii-user's user model
-            Yii::import('application.modules.user.models.*');
-            Yii::import('hoauth.DummyUserIdentity');
+            \Yii::import('application.modules.user.models.*');
 
             // preparing attributes array for `yii-user` module
-            $this->attributes = CMap::mergeArray(array(
+            $this->attributes = \CMap::mergeArray(array(
                 'email' => 'email',
                 'username' => 'displayName',
-                'status' => User::STATUS_ACTIVE,
+                'status' => \User::STATUS_ACTIVE,
             ), $this->attributes);
 
             $this->usernameAttribute = 'username';
             $this->_emailAttribute = 'email';
         } else {
             if (!in_array('email', $this->attributes)) {
-                throw new CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
+                throw new \CException("You forgot to bind 'email' field in " . __CLASS__ . "::attributes property.");
             }
 
-            Yii::import($this->model, true);
+            \Yii::import($this->model, true);
             $this->model = substr($this->model, strrpos($this->model, '.'));
 
             $this->_emailAttribute = array_search('email', $this->attributes);
         }
 
         if (empty($this->model) || !class_exists($this->model)) {
-            throw new CException('You should specify the User model to work with');
+            throw new \CException('You should specify the User model to work with');
         }
 
         if (!method_exists($this->model, 'findByEmail') && !self::$useYiiUser) {
-            throw new Exception("Model '{$this->model}' must implement the 'findByEmail' method");
+            throw new \Exception("Model '{$this->model}' must implement the 'findByEmail' method");
         }
     }
 
@@ -541,7 +541,7 @@ class HOAuthAction extends CAction
     public function getUserModel()
     {
         if ($this->useYiiUser) {
-            $user = User::model();
+            $user = \User::model();
         } else {
             $user = call_user_func(array($this->model, 'model'));
         }
@@ -568,7 +568,7 @@ class HOAuthAction extends CAction
      * Sets the UserOAuth model to work with
      * @param UserOAuth $value model
      */
-    public function setOauth(UserOAuth $value)
+    public function setOauth(\sleepwalker\hoauth\models\UserOAuth $value)
     {
         if (!$this->_oauth) {
             $this->_oauth = $value;
@@ -586,14 +586,14 @@ class HOAuthAction extends CAction
 
     public static function t($message, $params = array(), $source = null, $language = null)
     {
-        return Yii::t('HOAuthAction.root', $message, $params, $source, $language);
+        return \Yii::t('HOAuthAction.root', $message, $params, $source, $language);
     }
 
     /**
      * Handles, log or displays errors
      * @param  Exception $e
      */
-    protected function handleError(Exception $e)
+    protected function handleError(\Exception $e)
     {
         $error = "";
 
@@ -632,7 +632,7 @@ class HOAuthAction extends CAction
         }
 
         $error .= "\n\n<br /><br /><b>Original error message:</b> " . $e->getMessage();
-        Yii::log(strip_tags($error), CLogger::LEVEL_INFO, 'hoauth.' . __CLASS__);
+        \Yii::log(strip_tags($error), \CLogger::LEVEL_INFO, 'sleepwalker.hoauth.' . __CLASS__);
         if (YII_DEBUG) {
             throw $e;
         }

@@ -17,7 +17,10 @@
  * @license MIT ({@link http://opensource.org/licenses/MIT})
  * @link https://github.com/SleepWalker/hoauth
  */
-class UserOAuth extends CActiveRecord
+
+namespace sleepwalker\hoauth\models;
+
+class UserOAuth extends \CActiveRecord
 {
     /**
      * @var $_hybridauth HybridAuth class instance
@@ -46,7 +49,7 @@ class UserOAuth extends CActiveRecord
             $model = parent::model($className);
 
             return $model;
-        } catch (CDbException $e) {
+        } catch (\CDbException $e) {
             self::createDbTable();
             Yii::app()->controller->refresh();
         }
@@ -57,7 +60,7 @@ class UserOAuth extends CActiveRecord
      */
     public function tableName()
     {
-        if (!empty(Yii::app()->db->tablePrefix)) {
+        if (!empty(\Yii::app()->db->tablePrefix)) {
             return '{{user_oauth}}';
         } else {
 
@@ -101,7 +104,7 @@ class UserOAuth extends CActiveRecord
         $config = self::getConfigPath();
 
         if (!file_exists($config)) {
-            throw new CException("The config.php file doesn't exists");
+            throw new \CException("The config.php file doesn't exists");
         }
 
         return require ($config);
@@ -151,7 +154,7 @@ class UserOAuth extends CActiveRecord
             $path = dirname(__FILE__) . '/../hybridauth';
 
             require_once ($path . '/Hybrid/Auth.php');
-            $this->_hybridauth = new Hybrid_Auth(self::getConfig());
+            $this->_hybridauth = new \Hybrid_Auth(self::getConfig());
 
             if (!empty($this->session_data)) {
                 $this->_hybridauth->restoreSessionData($this->session_data);
@@ -199,7 +202,7 @@ class UserOAuth extends CActiveRecord
 
                 $this->session_data = $this->hybridauth->getSessionData();
                 return $this;
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $error = "";
                 switch ($e->getCode()) {
                     case 6://$error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again.";

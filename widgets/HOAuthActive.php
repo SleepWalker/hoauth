@@ -26,7 +26,9 @@
  * NOTE: If you want to change the order of button it is better to change this
  * order in HybridAuth config.php file
  */
-require_once (dirname(__FILE__) . '/HOAuth.php');
+
+namespace sleepwalker\hoauth\widgets;
+
 class HOAuthActive extends HOAuth
 {
     public $user = null;
@@ -38,12 +40,11 @@ class HOAuthActive extends HOAuth
         }
 
         // find all authorizations from user with id=
-        $userOAuths = UserOAuth::model()->findUser($this->user->primaryKey);
+        $userOAuths = \sleepwalker\hoauth\models\UserOAuth::model()->findUser($this->user->primaryKey);
         foreach ($userOAuths as $userOAuth) {
             $this->render('link', array(
                 'provider' => $userOAuth->provider,
             ));
         }
-
     }
 }
