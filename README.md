@@ -4,6 +4,9 @@ hoauth v1.2.5
 * `hoauth` extension provides simple integration with social network authorization lib [Hybridauth](http://hybridauth.sourceforge.net/) in Yii. (facebook, google, twitter, vkontakte and much more).
 * Automatically finds and supports `yii-user` module ([instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)).
 * supports prefixed tables
+* Supports I18N ([available translations](https://github.com/SleepWalker/hoauth/tree/master/messages))
+
+###[Demo](http://hoauth.hamstercms.com/yii-user/) | [Demo Source Code](https://github.com/SleepWalker/hoauth-demo-site)
 
 Requirements
 ------------
@@ -25,13 +28,6 @@ Available social networks
 * AOL
 
 Additional social networks providers can be found at HybridAuth [website](http://hybridauth.sourceforge.net/download.html). And how to configure them [here](http://hybridauth.sourceforge.net/userguide.html) at the bottom of the page.
-
-Available translations
-----------------------
-* English
-* German
-* Russian
-* Spanish (Thanks to Komannder)
 
 A little about how it's woks
 ----------------------------
@@ -207,10 +203,16 @@ echo "Your email is {$profile->email} and social network - {$userOAuth->provider
 You can also use `UserOAuth::profileCache` property to access cached copy of the profile, without making any request to the social network.
 About how to use HybridAuth object you can read [here](http://hybridauth.sourceforge.net/userguide.html).
 
+Documentation
+-------------
+ * [`yii-user` installation guide](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)
+ * [Creating yii app with `yii-user` and `hoauth` from scratch by Serge Ponomaryov (@begemotik on yii's site) ](http://www.ponomaryov.org/yii-tutorials/beginners-tutorial-integrating-user-management-and-oauth-into-a-yii-project/)
+ * [The source code of demo project](https://github.com/SleepWalker/hoauth-demo-site)
+ * [`UserIdentity` class example](https://github.com/SleepWalker/hoauth/wiki/UserIdentity-class-example)
+ * [Available Callbacks](https://github.com/SleepWalker/hoauth/wiki/Callbacks)
+
 Sources
 -------
-
-* [HybridAuth] (http://hybridauth.sourceforge.net)
-* [Zocial CSS3 Buttons] (https://github.com/samcollins/css-social-buttons/)
-* [Project page on Yii] (http://yiiframework.com/extension/hoauth/)
-* [instruction for yii-user](https://github.com/SleepWalker/hoauth/wiki/%5Binstall%5D-hoauth-and-yii-user-extension)
+* [HybridAuth](http://hybridauth.sourceforge.net)
+* [Zocial CSS3 Buttons](https://github.com/samcollins/css-social-buttons/)
+* [Project page on Yii's website] (http://yiiframework.com/extension/hoauth/)
